@@ -12,6 +12,10 @@ NASA Jet Propulsion Laboratory 329G
 [maggie.johnson@jpl.nasa.gov](mailto:maggie.johnson@jpl.nasa.gov)<br>
 NASA Jet Propulsion Laboratory 398L
 
+[Evan Davis](https://github.com/evandjpl) (he/him)<br>
+[evan.w.davis@jpl.nasa.gov](mailto:evan.w.davis@jpl.nasa.gov)<br>
+NASA Jet Propulsion Laboratory 397K
+
 [Kerry Cawse-Nicholson](https://github.com/kcawse) (she/her)<br>
 [kerry-anne.cawse-nicholson@jpl.nasa.gov](mailto:kerry-anne.cawse-nicholson@jpl.nasa.gov)<br>
 NASA Jet Propulsion Laboratory 329G
@@ -145,6 +149,52 @@ The layers of the L2T STARS product are listed in Table 2. All layers of this pr
 | albedo-UQ | Albedo Uncertainty | float32 | Ratio | NaN | N/A | 0 | 1 | N/A | 13.4 mb |
 
 *Table 2. Listing of L2T STARS data layers.*
+
+## Prerequisites
+
+This is a Python package that calls Julia code. Julia must be installed in order to run this package.
+
+## Authentication
+
+This package requires an [EarthData](https://urs.earthdata.nasa.gov/) account and reads EarthData credentials from `~/.netrc` in the following format:
+
+```
+machine urs.earthdata.nasa.gov
+login <USERNAME>
+password <PASSWORD>
+```
+
+## Environment
+
+On macOS, there are issues with installing `pykdtree` using pip, so it's better to use a mamba environment and install the `pykdtree` mamba package.
+
+```
+mamba create -y -n ECOv003-L2T-STARS -c conda-forge python=3.11 jupyter pykdtree 
+mamba activate ECOv003-L2T-STARS
+```
+
+## Installation
+
+Install this package from PyPi using the name `ECOv003-L2T-STARS` with dashes:
+
+```
+pip install ECOv003-L2T-STARS
+```
+
+You can also install development versions of this package directly from a clone of this repository:
+
+```
+pip install .
+```
+
+## Usage
+
+Import this package with the name `ECOv003_L2T_STARS` with underscores:
+
+```
+import ECOv003_L2T_STARS
+```
+
 
 ## References
 
