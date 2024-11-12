@@ -1,7 +1,0 @@
-name = "ECOv003L2TSTARS"
-uuid = "4590ff46-8e4a-469c-addd-3dd7dddbfa82"
-authors = ["Gregory H. Halverson <gregory.h.halverson@jpl.nasa.gov>"]
-version = "0.1.0"
-
-[deps]
-YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
