@@ -29,7 +29,7 @@ from harmonized_landsat_sentinel import HLSBandNotAcquired, HLS2CMR, CMR_SEARCH_
 from ECOv002_granules import L2TLSTE, L2TSTARS, NDVI_COLORMAP, ALBEDO_COLORMAP
 
 from .LPDAAC.LPDAACDataPool import LPDAACServerUnreachable
-from .PGEVersion import PGEVersion
+
 from .VIIRS import VIIRSDownloaderAlbedo, VIIRSDownloaderNDVI
 from .VIIRS.VNP43IA4 import VNP43IA4
 from .VIIRS.VNP43MA3 import VNP43MA3
@@ -43,6 +43,7 @@ with open(join(abspath(dirname(__file__)), "version.txt")) as f:
     version = f.read()
 
 __version__ = version
+PGEVersion = __version__
 
 L2T_STARS_TEMPLATE = join(abspath(dirname(__file__)), "L2T_STARS.xml")
 DEFAULT_WORKING_DIRECTORY = "."
