@@ -8,7 +8,6 @@ _AUTH = None
 class CMRServerUnreachable(Exception):
     pass
 
-
 def VIIRS_CMR_login() -> earthaccess.Auth:
     """
     Login to Earthdata using netrc credentials if available, falling back to environment variables.
