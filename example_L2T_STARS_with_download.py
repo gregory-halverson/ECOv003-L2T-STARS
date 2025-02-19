@@ -77,7 +77,7 @@ with open(runconfig_filename, "r") as f:
     print(f.read())
 
 # %%
-exit_code = L2T_STARS(runconfig_filename=runconfig_filename, use_VNP43NRT=False)
+exit_code = L2T_STARS(runconfig_filename=runconfig_filename, use_VNP43NRT=False, threads=1)
 exit_code
 
 # %%

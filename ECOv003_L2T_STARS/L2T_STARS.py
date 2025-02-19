@@ -623,13 +623,14 @@ def process_julia_data_fusion(
         prior_UQ_filename: str = None,
         prior_bias_filename: str = None,
         prior_bias_UQ_filename: str = None,
-        environment_name: str = "@ECOv002-L2T-STARS"):
+        environment_name: str = "@ECOv002-L2T-STARS",
+        threads: Union[int, str] = "auto"):
     julia_script_filename = join(abspath(dirname(__file__)), "process_ECOSTRESS_data_fusion.jl")
     STARS_source_directory = join(abspath(dirname(__file__)), "STARS_jl")
     
     instantiate_STARS_jl(STARS_source_directory)
 
-    command = f'export JULIA_NUM_THREADS=auto; julia --project="{STARS_source_directory}" --threads auto "{julia_script_filename}" "{tile}" "{coarse_cell_size}" "{fine_cell_size}" "{VIIRS_start_date}" "{VIIRS_end_date}" "{HLS_start_date}" "{HLS_end_date}" "{coarse_directory}" "{fine_directory}" "{posterior_filename}" "{posterior_UQ_filename}" "{posterior_bias_filename}" "{posterior_bias_UQ_filename}"'
+    command = f'export JULIA_NUM_THREADS={threads}; julia --project="{STARS_source_directory}" --threads {threads} "{julia_script_filename}" "{tile}" "{coarse_cell_size}" "{fine_cell_size}" "{VIIRS_start_date}" "{VIIRS_end_date}" "{HLS_start_date}" "{HLS_end_date}" "{coarse_directory}" "{fine_directory}" "{posterior_filename}" "{posterior_UQ_filename}" "{posterior_bias_filename}" "{posterior_bias_UQ_filename}"'
 
     if all([filename is not None and exists(filename) for filename in [prior_filename, prior_UQ_filename, prior_bias_filename, prior_bias_UQ_filename]]):
         logger.info("passing prior into Julia data fusion system")
@@ -1014,7 +1015,8 @@ def process_STARS_product(
         calibrate_fine: bool = True,
         remove_input_staging: bool = True,
         remove_prior: bool = True,
-        remove_posterior: bool = True):
+        remove_posterior: bool = True,
+        threads: Union[int, str] = "auto"):
     NDVI_coarse_geometry = HLS_connection.grid(tile=tile, cell_size=NDVI_resolution)
     albedo_coarse_geometry = HLS_connection.grid(tile=tile, cell_size=albedo_resolution)
 
@@ -1137,7 +1139,8 @@ def process_STARS_product(
             prior_filename=prior.prior_NDVI_filename,
             prior_UQ_filename=prior.prior_NDVI_UQ_filename,
             prior_bias_filename=prior.prior_NDVI_bias_filename,
-            prior_bias_UQ_filename=prior.prior_NDVI_bias_UQ_filename
+            prior_bias_UQ_filename=prior.prior_NDVI_bias_UQ_filename,
+            threads=threads
         )
     else:
         process_julia_data_fusion(
@@ -1153,7 +1156,8 @@ def process_STARS_product(
             posterior_filename=posterior_NDVI_filename,
             posterior_UQ_filename=posterior_NDVI_UQ_filename,
             posterior_bias_filename=posterior_NDVI_bias_filename,
-            posterior_bias_UQ_filename=posterior_NDVI_bias_UQ_filename
+            posterior_bias_UQ_filename=posterior_NDVI_bias_UQ_filename,
+            threads=threads
         )
 
     NDVI = Raster.open(posterior_NDVI_filename)
@@ -1210,6 +1214,7 @@ def process_STARS_product(
             prior_UQ_filename=prior.prior_albedo_UQ_filename,
             prior_bias_filename=prior.prior_albedo_bias_filename,
             prior_bias_UQ_filename=prior.prior_albedo_bias_UQ_filename,
+            threads=threads
         )
     else:
         process_julia_data_fusion(
@@ -1225,7 +1230,8 @@ def process_STARS_product(
             posterior_filename=posterior_albedo_filename,
             posterior_UQ_filename=posterior_albedo_UQ_filename,
             posterior_bias_filename=posterior_albedo_bias_filename,
-            posterior_bias_UQ_filename=posterior_albedo_bias_UQ_filename
+            posterior_bias_UQ_filename=posterior_albedo_bias_UQ_filename,
+            threads=threads
         )
 
     albedo = Raster.open(posterior_albedo_filename)
@@ -1367,7 +1373,8 @@ def L2T_STARS(
         sources_only: bool = False,
         remove_input_staging: bool = True,
         remove_prior: bool = True,
-        remove_posterior: bool = True) -> int:
+        remove_posterior: bool = True,
+        threads: Union[int, str] = "auto") -> int:
     """
     ECOSTRESS Collection 2 L2G L2T LSTE PGE
     :param runconfig_filename: filename for XML run-config
@@ -1722,7 +1729,8 @@ def L2T_STARS(
                 calibrate_fine=calibrate_fine,
                 remove_input_staging=remove_input_staging,
                 remove_prior=remove_prior,
-                remove_posterior=remove_posterior
+                remove_posterior=remove_posterior,
+                threads=threads
             )
 
     except (ConnectionError, urllib.error.HTTPError, CMRServerUnreachable) as exception:
