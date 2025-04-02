@@ -10,14 +10,22 @@ using STARS.HLS
 using STARS.VNP43
 using STARS.STARS
 using Logging
-
 using Pkg
+using Statistics
+
+# include(joinpath(@__DIR__,"STARS_jl/src/STARS2.jl"))
+include("./STARS_jl/src/STARS2.jl")
 
 Pkg.add("OpenSSL")
 
 using HTTP
 
 BLAS.set_num_threads(1)
+
+DEFAULT_MEAN = 0.3
+DEFAULT_SD = 0.01
+DEFAULT_BIAS = 0.0
+DEFAULT_BIAS_SD = 0.001
 
 struct CustomLogger <: AbstractLogger
     stream::IO
@@ -145,6 +153,11 @@ covariance_images = Raster(cat(covariance_images..., dims=3), dims=covariance_di
 # estimate spatial var parameter
 n_eff = compute_n_eff(Int(round(coarse_cell_size / fine_cell_size)), 2, smoothness=1.5) ## Matern: range = 200m, smoothness = 1.5
 sp_var = fast_var_est(covariance_images, n_eff_agg = n_eff)
+# cov_pars_raster = Raster(fill(NaN, size(covariance_images)[1], size(covariance_images)[2], 4), dims=(covariance_images.dims[1:2]...,Band(1:4)), missingval=covariance_images.missingval)
+# cov_pars_raster[:,:,1] = sp_var
+# cov_pars_raster[:,:,2] .= 200
+# cov_pars_raster[:,:,3] .= 1e-10
+# cov_pars_raster[:,:,4] .= 1.5
 
 # cov_pars = ones((size(covariance_images)[1], size(covariance_images)[2], 4))
 # cov_pars[:,:,1] = Array{Float64}(sp_var)
@@ -174,7 +187,7 @@ for (i, date) in enumerate(dates)
         @info size(coarse_image)
         push!(coarse_dates, dates[i])
         push!(coarse_images, coarse_image)
-        tk += 1
+        global tk += 1
     end
 end
 @info "concatenating coarse image inputs"
@@ -209,7 +222,7 @@ for (i, date) in enumerate(dates)
         @info size(fine_image)
         push!(fine_images, fine_image)
         push!(fine_dates, dates[i])
-        tk += 1
+        global tk += 1
     end
 end
 
@@ -230,10 +243,11 @@ target_time = length(dates)
 if isnothing(prior)
     mm = trues(size(fine_images)[1:2])
     data_pixels = sum(.!isnan.(fine_images),dims=3) 
-    if sum(data_pixels.==0) > 0
-        coarse_nans = resample(sum(.!isnan.(coarse_images),dims=3), to=fine_images[:,:,1], method=:near)
-        data_pixels .+= coarse_nans 
-    end
+    ### uncomment to keep viirs-only pixels 
+    # if sum(data_pixels.==0) > 0
+    #     coarse_nans = resample(sum(.!isnan.(coarse_images),dims=3), to=fine_images[:,:,1], method=:near)
+    #     data_pixels .+= coarse_nans 
+    # end
     mm[data_pixels[:,:,1] .> 0] .= false
     if sum(mm .> 0) == 0
         mm = nothing
@@ -279,6 +293,9 @@ coarse_geodata = STARSInstrumentGeoData(coarse_origin, coarse_csize, coarse_ndim
 fine_data = STARSInstrumentData(fine_array, 0.0, 1e-6, false, nothing, abs.(fine_csize), fine_times, [1. 1.])
 coarse_data = STARSInstrumentData(coarse_array, 0.0, 1e-6, true, [1.0, 1e-6], abs.(coarse_csize), coarse_times, [1. 1.])
 
+nsamp=100
+window_buffer = 2
+
 cov_pars = ones((size(fine_images)[1], size(fine_images)[2], 4))
 
 sp_rs = resample(log.(sqrt.(sp_var[:,:,1])); to=fine_images[:,:,1], size=size(fine_images)[1:2], method=:cubicspline)
@@ -289,9 +306,6 @@ cov_pars[:,:,2] .= 200
 cov_pars[:,:,3] .= 1e-10
 cov_pars[:,:,4] .= 1.5
 
-nsamp=100
-window_buffer = 2
-
 @time if isnothing(prior)
     fused_images, fused_sd_images, fused_bias_images, fused_bias_sd_images = coarse_fine_scene_fusion_ns(fine_data,
         coarse_data,
@@ -301,7 +315,7 @@ window_buffer = 2
         DEFAULT_MEAN .* ones(fine_ndims...),
         DEFAULT_SD^2 .* ones(fine_ndims...), 
         DEFAULT_BIAS .* ones(coarse_ndims...),
-        DEFAULT_BIAS_SD .* ones(coarse_ndims...),
+        DEFAULT_BIAS_SD^2 .* ones(coarse_ndims...),
         cov_pars;
         nsamp = nsamp,
         window_buffer = window_buffer,
@@ -348,7 +362,7 @@ end
 
 dd = fused_images[:,:,:]
 
-### mask no historical data 
+### mask pixels with no historical HLS data 
 if !isnothing(mm)
     dd[mm,:] .= NaN
 end
