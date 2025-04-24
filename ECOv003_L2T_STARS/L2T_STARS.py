@@ -1463,6 +1463,8 @@ def L2T_STARS(
             if isinstance(date_UTC, str):
                 date_UTC = parser.parse(date_UTC).date()
 
+        ## TODO need to check if the L2T LSTE granule is day-time and halt L2T STARS run if it's not
+
         L2T_STARS_prior_filename = runconfig.L2T_STARS_prior_filename
 
         prior = load_prior(
