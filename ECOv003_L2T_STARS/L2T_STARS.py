@@ -625,7 +625,7 @@ def process_julia_data_fusion(
         prior_bias_UQ_filename: str = None,
         environment_name: str = "@ECOv002-L2T-STARS",
         threads: Union[int, str] = "auto"):
-    julia_script_filename = join(abspath(dirname(__file__)), "process_ECOSTRESS_data_fusion.jl")
+    julia_script_filename = join(abspath(dirname(__file__)), "process_ECOSTRESS_data_fusion_v2.jl")
     STARS_source_directory = join(abspath(dirname(__file__)), "STARS_jl")
     
     instantiate_STARS_jl(STARS_source_directory)
