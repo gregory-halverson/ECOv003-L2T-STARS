@@ -16,45 +16,35 @@ classifiers = [
 ]
 dependencies = [
     "colored-logging",
-    "ECOv002-granules",
     "ECOv002-CMR>=1.0.4",
-    "pandas",
-    "pillow",
-    "geopandas",
-    "geos5fp",
-    "harmonized-landsat-sentinel>=1.1.0",
+    "ECOv002-granules",
+    "GEOS5FP",
     "h5py",
+    "harmonized-landsat-sentinel>=1.1.0",
     "matplotlib",
     "modland",
-    "msgpack",
-    "msgpack_numpy",
-    "netCDF4",
     "numpy",
-    "pyproj",
-    "rasterio",
-    "shapely",
-    "scikit-image",
-    "affine",
-    "astropy",
+    "pandas",
     "pycksum",
-    "pykdtree",
-    "pyresample",
     "rasters",
-    "scikit-learn",
+    "scikit-image",
     "scipy",
     "sentinel-tiles",
-    "six",
-    "tensorflow",
+    "shapely",
     "untangle",
     "xmltodict"
 ]
 
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
 dev = [
+    "build",
     "pytest>=6.0",
     "pytest-cov",
+    "jupyter",
+    "pytest",
+    "twine"
 ]
 
 [tool.setuptools.package-data]
@@ -64,5 +54,5 @@ ECOv003_L2T_STARS = ["*.*"]
 "Homepage" = "https://github.com/ECOSTRESS-Collection-3/ECOv003-L2T-STARS"
 
 [tool.setuptools.packages.find]
-include = ["ECOv003_L2T_JET"]
+include = ["ECOv003_L2T_STARS"]
 exclude = []
