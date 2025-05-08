@@ -259,6 +259,7 @@ end
 #### scene-level additive bias correction
 common_dates = intersect(coarse_dates, fine_dates)
 
+coarse_bias = 0
 ### don't bias correct NDVI
 if occursin("albedo", posterior_filename)
     if length(common_dates) > 0 
@@ -347,7 +348,7 @@ fine_data = STARSInstrumentData(fine_array, 0.0, 1e-6, false, nothing, abs.(fine
 coarse_data = STARSInstrumentData(coarse_array, 0.0, 1e-4, false, nothing, abs.(coarse_csize), coarse_times, [1. 1.])
 
 nsamp=60
-window_buffer = 5 ## set these differently for NDVI and albedo?
+window_buffer = 4 ## set these differently for NDVI and albedo?
 
 cov_pars = ones((size(fine_images)[1], size(fine_images)[2], 4))
 

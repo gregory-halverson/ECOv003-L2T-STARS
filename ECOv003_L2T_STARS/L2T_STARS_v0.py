@@ -87,15 +87,24 @@ class Prior:
             L2T_STARS_prior_filename: str = None,
             prior_NDVI_filename: str = None,
             prior_NDVI_UQ_filename: str = None,
+            prior_NDVI_bias_filename: str = None,
+            prior_NDVI_bias_UQ_filename: str = None,
             prior_albedo_filename: str = None,
-            prior_albedo_UQ_filename: str = None):
+            prior_albedo_UQ_filename: str = None,
+            prior_albedo_bias_filename: str = None,
+            prior_albedo_bias_UQ_filename: str = None):
         self.using_prior = using_prior
         self.prior_date_UTC = prior_date_UTC
         self.L2T_STARS_prior_filename = L2T_STARS_prior_filename
         self.prior_NDVI_filename = prior_NDVI_filename
         self.prior_NDVI_UQ_filename = prior_NDVI_UQ_filename
+        self.prior_NDVI_bias_filename = prior_NDVI_bias_filename
+        self.prior_NDVI_bias_UQ_filename = prior_NDVI_bias_UQ_filename
         self.prior_albedo_filename = prior_albedo_filename
         self.prior_albedo_UQ_filename = prior_albedo_UQ_filename
+        self.prior_albedo_bias_filename = prior_albedo_bias_filename
+        self.prior_albedo_bias_UQ_filename = prior_albedo_bias_UQ_filename
+
 
 def generate_L2T_STARS_runconfig(
         L2T_LSTE_filename: str,
@@ -527,6 +536,7 @@ def generate_output_directory(working_directory: str, date_UTC: Union[date, str]
 
     return directory
 
+
 def generate_model_state_tile_date_directory(model_directory: str, tile: str, date_UTC: Union[date, str]) -> str:
     if isinstance(date_UTC, str):
         date_UTC = parser.parse(date_UTC).date()
@@ -537,8 +547,8 @@ def generate_model_state_tile_date_directory(model_directory: str, tile: str, da
     return directory
 
 def install_STARS_jl(
-    github_URL: str = "https://github.com/STARS-Data-Fusion/STARSDataFusion.jl",
-    environment_name: str = "@ECOv003-L2T-STARS"):
+    github_URL: str = "https://github.com/STARS-Data-Fusion/STARS.jl",
+    environment_name: str = "@ECOv002-L2T-STARS"):
     """
     Installs the STARS.jl package from GitHub into a specified environment.
 
@@ -546,7 +556,7 @@ def install_STARS_jl(
         github_url: The URL of the GitHub repository containing STARS.jl.
             Defaults to "https://github.com/STARS-Data-Fusion/STARS.jl".
         environment_name: The name of the Julia environment to install the package into.
-            Defaults to "ECOv003-L2T-STARS".
+            Defaults to "ECOv002-L2T-STARS".
 
     Returns:
         A CompletedProcess object containing information about the execution of the Julia command.
@@ -561,9 +571,9 @@ def install_STARS_jl(
     result = subprocess.run(julia_command, capture_output=True, text=True)
 
     if result.returncode == 0:
-        print(f"STARSDataFusion.jl installed successfully in environment '{environment_name}'!")
+        print(f"STARS.jl installed successfully in environment '{environment_name}'!")
     else:
-        print("Error installing STARSDataFusion.jl:")
+        print("Error installing STARS.jl:")
         print(result.stderr)
 
     return result
@@ -608,25 +618,23 @@ def process_julia_data_fusion(
         posterior_filename: str,
         posterior_UQ_filename: str,
         posterior_bias_filename: str,
-        posterior_flag_filename: str,
+        posterior_bias_UQ_filename: str,
         prior_filename: str = None,
         prior_UQ_filename: str = None,
         prior_bias_filename: str = None,
-        prior_flag_filename: str = None,
-        environment_name: str = "@ECOv003-L2T-STARS",
-        threads: Union[int, str] = "auto",
-        num_workers: int = 4):
+        prior_bias_UQ_filename: str = None,
+        environment_name: str = "@ECOv002-L2T-STARS",
+        threads: Union[int, str] = "auto"):
+    julia_script_filename = join(abspath(dirname(__file__)), "process_ECOSTRESS_data_fusion_v2.jl")
+    STARS_source_directory = join(abspath(dirname(__file__)), "STARS_jl")
     
-    julia_script_filename = join(abspath(dirname(__file__)), "process_ECOSTRESS_data_fusion_distributed.jl")
-    # STARS_source_directory = join(abspath(dirname(__file__)), "STARS_jl")
-    
-    # instantiate_STARS_jl(STARS_source_directory)
+    instantiate_STARS_jl(STARS_source_directory)
 
-    command = f'export JULIA_NUM_THREADS={threads}; julia --project="{abspath(dirname(__file__))}" --threads {threads} "{julia_script_filename}" "{num_workers}" "{tile}" "{coarse_cell_size}" "{fine_cell_size}" "{VIIRS_start_date}" "{VIIRS_end_date}" "{HLS_start_date}" "{HLS_end_date}" "{coarse_directory}" "{fine_directory}" "{posterior_filename}" "{posterior_UQ_filename}" "{posterior_flag_filename}" "{posterior_bias_filename}"'
+    command = f'export JULIA_NUM_THREADS={threads}; julia --project="{STARS_source_directory}" --threads {threads} "{julia_script_filename}" "{tile}" "{coarse_cell_size}" "{fine_cell_size}" "{VIIRS_start_date}" "{VIIRS_end_date}" "{HLS_start_date}" "{HLS_end_date}" "{coarse_directory}" "{fine_directory}" "{posterior_filename}" "{posterior_UQ_filename}" "{posterior_bias_filename}" "{posterior_bias_UQ_filename}"'
 
-    if all([filename is not None and exists(filename) for filename in [prior_filename, prior_UQ_filename]]):
+    if all([filename is not None and exists(filename) for filename in [prior_filename, prior_UQ_filename, prior_bias_filename, prior_bias_UQ_filename]]):
         logger.info("passing prior into Julia data fusion system")
-        command += f' "{prior_filename}" "{prior_UQ_filename}" "{prior_flag_filename}" "{prior_bias_filename}"'
+        command += f' "{prior_filename}" "{prior_UQ_filename}" "{prior_bias_filename}" "{prior_bias_UQ_filename}"'
 
     logger.info(command)
     subprocess.run(command, shell=True)
@@ -696,7 +704,7 @@ def generate_STARS_inputs(
         HLS_connection: HLS2CMR,
         NDVI_VIIRS_connection: VIIRSDownloaderNDVI,
         albedo_VIIRS_connection: VIIRSDownloaderAlbedo,
-        calibrate_fine: False):
+        calibrate_fine: True):
     missing_coarse_dates = set()
 
     for processing_date in [get_date(dt) for dt in rrule(DAILY, dtstart=VIIRS_start_date, until=VIIRS_end_date)]:
@@ -816,12 +824,12 @@ def load_prior(
     prior_date_UTC = None
     prior_NDVI_filename = None
     prior_NDVI_UQ_filename = None
-    prior_NDVI_flag_filename = None
     prior_NDVI_bias_filename = None
+    prior_NDVI_bias_UQ_filename = None
     prior_albedo_filename = None
     prior_albedo_UQ_filename = None
-    prior_albedo_flag_filename = None
     prior_albedo_bias_filename = None
+    prior_albedo_bias_UQ_filename = None
 
     # check if prior L2T_STARS product is available
     if L2T_STARS_prior_filename is not None and exists(L2T_STARS_prior_filename):
@@ -831,10 +839,8 @@ def load_prior(
         logger.info(f"prior date: {prior_date_UTC}")
         NDVI_prior_mean = L2T_STARS_prior_granule.NDVI
         NDVI_prior_UQ = L2T_STARS_prior_granule.NDVI_UQ
-        NDVI_prior_flag = L2T_STARS_prior_granule.NDVI_flag
         albedo_prior_mean = L2T_STARS_prior_granule.albedo
         albedo_prior_UQ = L2T_STARS_prior_granule.albedo_UQ
-        albedo_prior_flag = L2T_STARS_prior_granule.albedo_flag
 
         prior_tile_date_directory = generate_model_state_tile_date_directory(
             model_directory=model_directory,
@@ -862,6 +868,22 @@ def load_prior(
 
         NDVI_prior_UQ.to_geotiff(prior_NDVI_UQ_filename)
 
+        prior_NDVI_bias_filename = generate_filename(
+            directory=prior_tile_date_directory,
+            variable="NDVI.bias",
+            date_UTC=prior_date_UTC,
+            tile=tile,
+            cell_size=target_resolution
+        )
+
+        prior_NDVI_bias_UQ_filename = generate_filename(
+            directory=prior_tile_date_directory,
+            variable="NDVI.bias.UQ",
+            date_UTC=prior_date_UTC,
+            tile=tile,
+            cell_size=target_resolution
+        )
+
         prior_albedo_filename = generate_filename(
             directory=prior_tile_date_directory,
             variable="albedo",
@@ -882,6 +904,22 @@ def load_prior(
 
         albedo_prior_UQ.to_geotiff(prior_albedo_UQ_filename)
 
+        prior_albedo_bias_filename = generate_filename(
+            directory=prior_tile_date_directory,
+            variable="albedo.bias",
+            date_UTC=prior_date_UTC,
+            tile=tile,
+            cell_size=target_resolution
+        )
+
+        prior_albedo_bias_UQ_filename = generate_filename(
+            directory=prior_tile_date_directory,
+            variable="albedo.bias.UQ",
+            date_UTC=prior_date_UTC,
+            tile=tile,
+            cell_size=target_resolution
+        )
+
         using_prior = True
 
     if prior_NDVI_filename is not None and exists(prior_NDVI_filename):
@@ -896,6 +934,18 @@ def load_prior(
         logger.info(f"prior NDVI UQ not found: {prior_NDVI_UQ_filename}")
         using_prior = False
 
+    if prior_NDVI_bias_filename is not None and exists(prior_NDVI_bias_filename):
+        logger.info(f"prior NDVI bias ready: {prior_NDVI_bias_filename}")
+    else:
+        logger.info(f"prior NDVI bias not found: {prior_NDVI_bias_filename}")
+        using_prior = False
+
+    if prior_NDVI_bias_UQ_filename is not None and exists(prior_NDVI_bias_UQ_filename):
+        logger.info(f"prior NDVI bias UQ ready: {prior_NDVI_bias_UQ_filename}")
+    else:
+        logger.info(f"prior NDVI bias UQ not found: {prior_NDVI_bias_UQ_filename}")
+        using_prior = False
+
     if prior_albedo_filename is not None and exists(prior_albedo_filename):
         logger.info(f"prior albedo ready: {prior_albedo_filename}")
     else:
@@ -908,15 +958,32 @@ def load_prior(
         logger.info(f"prior albedo UQ not found: {prior_albedo_UQ_filename}")
         using_prior = False
 
+    if prior_albedo_bias_filename is not None and exists(prior_albedo_bias_filename):
+        logger.info(f"prior albedo bias ready: {prior_albedo_bias_filename}")
+    else:
+        logger.info(f"prior albedo bias not found: {prior_albedo_bias_filename}")
+        using_prior = False
+
+    if prior_albedo_bias_UQ_filename is not None and exists(prior_albedo_bias_UQ_filename):
+        logger.info(f"prior albedo bias UQ ready: {prior_albedo_bias_UQ_filename}")
+    else:
+        logger.info(f"prior albedo bias UQ not found: {prior_albedo_bias_UQ_filename}")
+        using_prior = False
+
     prior = Prior(
         using_prior=using_prior,
         prior_date_UTC=prior_date_UTC,
         L2T_STARS_prior_filename=L2T_STARS_prior_filename,
         prior_NDVI_filename=prior_NDVI_filename,
         prior_NDVI_UQ_filename=prior_NDVI_UQ_filename,
+        prior_NDVI_bias_filename=prior_NDVI_bias_filename,
+        prior_NDVI_bias_UQ_filename=prior_NDVI_bias_UQ_filename,
         prior_albedo_filename=prior_albedo_filename,
         prior_albedo_UQ_filename=prior_albedo_UQ_filename,
+        prior_albedo_bias_filename=prior_albedo_bias_filename,
+        prior_albedo_bias_UQ_filename=prior_albedo_bias_UQ_filename
     )
+
     return prior
 
 
@@ -1034,6 +1101,26 @@ def process_STARS_product(
 
     logger.info(f"posterior NDVI UQ file: {posterior_NDVI_UQ_filename}")
 
+    posterior_NDVI_bias_filename = generate_filename(
+        directory=posterior_tile_date_directory,
+        variable="NDVI.bias",
+        date_UTC=date_UTC,
+        tile=tile,
+        cell_size=target_resolution
+    )
+
+    logger.info(f"posterior NDVI bias file: {posterior_NDVI_bias_filename}")
+
+    posterior_NDVI_bias_UQ_filename = generate_filename(
+        directory=posterior_tile_date_directory,
+        variable="NDVI.bias.UQ",
+        date_UTC=date_UTC,
+        tile=tile,
+        cell_size=target_resolution
+    )
+
+    logger.info(f"posterior NDVI bias UQ file: {posterior_NDVI_bias_UQ_filename}")
+
     if using_prior:
         process_julia_data_fusion(
             tile=tile,
@@ -1047,8 +1134,12 @@ def process_STARS_product(
             fine_directory=NDVI_fine_directory,
             posterior_filename=posterior_NDVI_filename,
             posterior_UQ_filename=posterior_NDVI_UQ_filename,
+            posterior_bias_filename=posterior_NDVI_bias_filename,
+            posterior_bias_UQ_filename=posterior_NDVI_bias_UQ_filename,
             prior_filename=prior.prior_NDVI_filename,
             prior_UQ_filename=prior.prior_NDVI_UQ_filename,
+            prior_bias_filename=prior.prior_NDVI_bias_filename,
+            prior_bias_UQ_filename=prior.prior_NDVI_bias_UQ_filename,
             threads=threads
         )
     else:
@@ -1064,6 +1155,8 @@ def process_STARS_product(
             fine_directory=NDVI_fine_directory,
             posterior_filename=posterior_NDVI_filename,
             posterior_UQ_filename=posterior_NDVI_UQ_filename,
+            posterior_bias_filename=posterior_NDVI_bias_filename,
+            posterior_bias_UQ_filename=posterior_NDVI_bias_UQ_filename,
             threads=threads
         )
 
@@ -1086,6 +1179,22 @@ def process_STARS_product(
         cell_size=target_resolution
     )
 
+    posterior_albedo_bias_filename = generate_filename(
+        directory=posterior_tile_date_directory,
+        variable="albedo.bias",
+        date_UTC=date_UTC,
+        tile=tile,
+        cell_size=target_resolution
+    )
+
+    posterior_albedo_bias_UQ_filename = generate_filename(
+        directory=posterior_tile_date_directory,
+        variable="albedo.bias.UQ",
+        date_UTC=date_UTC,
+        tile=tile,
+        cell_size=target_resolution
+    )
+
     if using_prior:
         process_julia_data_fusion(
             tile=tile,
@@ -1099,8 +1208,12 @@ def process_STARS_product(
             fine_directory=albedo_fine_directory,
             posterior_filename=posterior_albedo_filename,
             posterior_UQ_filename=posterior_albedo_UQ_filename,
+            posterior_bias_filename=posterior_albedo_bias_filename,
+            posterior_bias_UQ_filename=posterior_albedo_bias_UQ_filename,
             prior_filename=prior.prior_albedo_filename,
             prior_UQ_filename=prior.prior_albedo_UQ_filename,
+            prior_bias_filename=prior.prior_albedo_bias_filename,
+            prior_bias_UQ_filename=prior.prior_albedo_bias_UQ_filename,
             threads=threads
         )
     else:
@@ -1116,6 +1229,8 @@ def process_STARS_product(
             fine_directory=albedo_fine_directory,
             posterior_filename=posterior_albedo_filename,
             posterior_UQ_filename=posterior_albedo_UQ_filename,
+            posterior_bias_filename=posterior_albedo_bias_filename,
+            posterior_bias_UQ_filename=posterior_albedo_bias_UQ_filename,
             threads=threads
         )
 
@@ -1177,11 +1292,19 @@ def process_STARS_product(
     Raster.open(posterior_NDVI_filename, cmap=NDVI_COLORMAP).to_geotiff(posterior_NDVI_filename)
     logger.info(f"re-writing posterior NDVI UQ: {posterior_NDVI_UQ_filename}")
     Raster.open(posterior_NDVI_UQ_filename, cmap=NDVI_COLORMAP).to_geotiff(posterior_NDVI_UQ_filename)
+    logger.info(f"re-writing posterior NDVI bias: {posterior_NDVI_bias_filename}")
+    Raster.open(posterior_NDVI_bias_filename, cmap=NDVI_COLORMAP).to_geotiff(posterior_NDVI_bias_filename)
+    logger.info(f"re-writing posterior NDVI bias UQ: {posterior_NDVI_bias_UQ_filename}")
+    Raster.open(posterior_NDVI_bias_UQ_filename, cmap=NDVI_COLORMAP).to_geotiff(posterior_NDVI_bias_UQ_filename)
 
     logger.info(f"re-writing posterior albedo: {posterior_albedo_filename}")
     Raster.open(posterior_albedo_filename, cmap=ALBEDO_COLORMAP).to_geotiff(posterior_albedo_filename)
     logger.info(f"re-writing posterior albedo UQ: {posterior_albedo_UQ_filename}")
     Raster.open(posterior_albedo_UQ_filename, cmap=ALBEDO_COLORMAP).to_geotiff(posterior_albedo_UQ_filename)
+    logger.info(f"re-writing posterior albedo bias: {posterior_albedo_bias_filename}")
+    Raster.open(posterior_albedo_bias_filename, cmap=ALBEDO_COLORMAP).to_geotiff(posterior_albedo_bias_filename)
+    logger.info(f"re-writing posterior albedo bias UQ: {posterior_albedo_bias_UQ_filename}")
+    Raster.open(posterior_albedo_bias_UQ_filename, cmap=ALBEDO_COLORMAP).to_geotiff(posterior_albedo_bias_UQ_filename)
 
     if remove_input_staging:
         logger.info(f"removing input staging directory: {input_staging_directory}")
@@ -1196,6 +1319,14 @@ def process_STARS_product(
             logger.info(f"removing NDVI UQ prior: {prior.prior_NDVI_UQ_filename}")
             remove(prior.prior_NDVI_UQ_filename)
 
+        if exists(prior.prior_NDVI_bias_filename):
+            logger.info(f"removing NDVI bias prior: {prior.prior_NDVI_bias_filename}")
+            remove(prior.prior_NDVI_bias_filename)
+
+        if exists(prior.prior_NDVI_bias_UQ_filename):
+            logger.info(f"removing NDVI bias UQ prior: {prior.prior_NDVI_bias_UQ_filename}")
+            remove(prior.prior_NDVI_bias_UQ_filename)
+
         if exists(prior.prior_albedo_filename):
             logger.info(f"removing albedo prior: {prior.prior_albedo_filename}")
             remove(prior.prior_albedo_filename)
@@ -1203,6 +1334,14 @@ def process_STARS_product(
         if exists(prior.prior_albedo_UQ_filename):
             logger.info(f"removing albedo UQ prior: {prior.prior_albedo_UQ_filename}")
             remove(prior.prior_albedo_UQ_filename)
+
+        if exists(prior.prior_albedo_bias_filename):
+            logger.info(f"removing albedo bias prior: {prior.prior_albedo_bias_filename}")
+            remove(prior.prior_albedo_bias_filename)
+
+        if exists(prior.prior_albedo_bias_UQ_filename):
+            logger.info(f"removing albedo bias UQ prior: {prior.prior_albedo_bias_UQ_filename}")
+            remove(prior.prior_albedo_bias_UQ_filename)
 
     if remove_posterior:
         if exists(posterior_NDVI_filename):

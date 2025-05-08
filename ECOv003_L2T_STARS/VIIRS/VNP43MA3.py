@@ -10,7 +10,7 @@ from dateutil import parser
 import colored_logging as cl
 import rasters as rt
 from rasters import Raster, RasterGrid, RasterGeometry
-from geos5fp import GEOS5FP
+from GEOS5FP import GEOS5FP
 from  modland import find_modland_tiles, generate_modland_grid, parsehv
 
 from ..BRDF import bidirectional_reflectance
