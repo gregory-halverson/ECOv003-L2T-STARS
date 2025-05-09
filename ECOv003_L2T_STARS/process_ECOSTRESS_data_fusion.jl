@@ -133,6 +133,7 @@ for (i, date) in enumerate(covariance_dates)
         filename = coarse_image_filenames[match]
         @info "ingesting coarse image on $(date): $(filename)"
         covariance_image = Raster(reshape(Raster(filename), x_coarse_size, y_coarse_size, 1), dims=timestep_dims, missingval=NaN)
+        replace!(covariance_image, missing => NaN)
         @info size(covariance_image)
     end
 
@@ -167,6 +168,7 @@ for (i, date) in enumerate(dates)
         filename = coarse_image_filenames[match]
         @info "ingesting coarse image on $(date): $(filename)"
         coarse_image = Raster(reshape(Raster(filename), x_coarse_size, y_coarse_size, 1), dims=timestep_dims, missingval=NaN)
+        replace!(coarse_image, missing => NaN)
         @info size(coarse_image)
     end
 
@@ -192,6 +194,7 @@ for (i, date) in enumerate(dates)
         filename = fine_image_filenames[match]
         @info "ingesting fine image on $(date): $(filename)"
         fine_image = Raster(reshape(Raster(filename), x_fine_size, y_fine_size, 1), dims=timestep_dims, missingval=NaN)
+        replace!(fine_image, missing => NaN)
         @info size(fine_image)
     end
 
@@ -204,10 +207,10 @@ fine_images = Raster(cat(fine_images..., dims=3), dims=fine_dims, missingval=NaN
 target_date = dates[end]
 
 @info "running data fusion"
-fusion_results = coarse_fine_data_fusion(
+@time fusion_results = coarse_fine_data_fusion(
     coarse_images,
     fine_images,
-    cov_pars = cov_pars_raster,
+    cov_pars_raster,
     prior = prior,
     target_times = [target_date],
     buffer_distance = 100.,
