@@ -17,7 +17,7 @@ import colored_logging as cl
 
 import rasters
 from rasters import Raster, RasterGeometry, Point, Polygon
-from GEOS5FP import GEOS5FP, FailedGEOS5FPDownload
+from geos5fp import GEOS5FP, FailedGEOS5FPDownload
 from modland import find_modland_tiles, parsehv, generate_modland_grid
 
 from ..BRDF import bidirectional_reflectance

@@ -29,7 +29,8 @@ end
 
 @info "processing STARS data fusion"
 
-wrkrs = parse(Int64, ARGS[1])
+# wrkrs = parse(Int64, ARGS[1])
+wrkrs = 8
 
 @info "starting $(wrkrs) workers"
 addprocs(wrkrs) ## need to set num workers
@@ -95,13 +96,13 @@ posterior_bias_filename = ARGS[14]
 if size(ARGS)[1] >= 18
     prior_filename = ARGS[15]
     @info "prior filename: $(prior_filename)"
-    prior_mean = Raster(prior_filename)
+    prior_mean = Array(Raster(prior_filename))
     prior_UQ_filename = ARGS[16]
     @info "prior UQ filename: $(prior_UQ_filename)"
-    prior_sd = Raster(prior_UQ_filename)
+    prior_sd = Array(Raster(prior_UQ_filename))
     prior_flag_filename = ARGS[17]
     @info "prior flag filename: $(prior_flag_filename)"
-    prior_flag = Raster(prior_flag_filename)
+    prior_flag = Array(Raster(prior_flag_filename))
     prior_bias_filename = ARGS[18]
     @info "prior bias filename: $(prior_bias_filename)"
     prior_bias_factor = Float64(read_json(prior_bias_filename)["coarse_bias"])
@@ -348,7 +349,7 @@ fine_data = STARSInstrumentData(fine_array, 0.0, 1e-6, false, nothing, abs.(fine
 coarse_data = STARSInstrumentData(coarse_array, 0.0, 1e-4, false, nothing, abs.(coarse_csize), coarse_times, [1. 1.])
 
 nsamp=60
-window_buffer = 4 ## set these differently for NDVI and albedo?
+window_buffer = 5 ## set these differently for NDVI and albedo?
 
 cov_pars = ones((size(fine_images)[1], size(fine_images)[2], 4))
 
@@ -361,7 +362,7 @@ cov_pars[:,:,2] .= coarse_cell_size
 cov_pars[:,:,3] .= 1e-10
 cov_pars[:,:,4] .= 0.5
 
-@time if isnothing(prior_mean)
+if isnothing(prior_mean)
     fused_images, fused_sd_images = coarse_fine_scene_fusion_pmap(fine_data,
         coarse_data,
         fine_geodata, 
@@ -423,9 +424,9 @@ fused_raster = Raster(dd, dims=(x_fine, y_fine, Band(1:1)), missingval=NaN)
 flag_raster = Raster(prior_flag, dims=(x_fine, y_fine), missingval=NaN)
 
 @info "writing fused mean: $(posterior_filename)"
-write(posterior_filename, fused_raster)
+write(posterior_filename, fused_raster, force=true)
 @info "writing fused mean: $(posterior_flag_filename)"
-write(posterior_flag_filename, flag_raster)
+write(posterior_flag_filename, flag_raster, force=true)
 @info "writing fused SD: $(posterior_UQ_filename)"
 write(posterior_UQ_filename, Raster(fused_sd_images, dims=(x_fine, y_fine, Band(1:1)), missingval=NaN), force=true)
 

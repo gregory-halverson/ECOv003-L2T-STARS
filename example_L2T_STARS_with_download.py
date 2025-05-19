@@ -18,7 +18,7 @@ logging.getLogger().handlers = []
 # Set working directory
 
 # %%
-working_directory = "~/data/ECOSTRESS_demo"
+working_directory = "~/data/ECOSTRESS_demo_C2"
 
 # %% [markdown]
 # Retrieve LST LSTE granule from CMR API for target date
@@ -77,7 +77,7 @@ with open(runconfig_filename, "r") as f:
     print(f.read())
 
 # %%
-exit_code = L2T_STARS(runconfig_filename=runconfig_filename, use_VNP43NRT=False, threads=1)
+exit_code = L2T_STARS(runconfig_filename=runconfig_filename, use_VNP43NRT=False, threads=1, num_workers=8)
 exit_code
 
 # %%

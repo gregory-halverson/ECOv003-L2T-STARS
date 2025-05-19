@@ -229,3 +229,10 @@ write(posterior_bias_filename, Raster(fusion_results.mean_bias, dims=(x_coarse, 
 @info "writing bias SD: $(posterior_bias_UQ_filename)"
 write(posterior_bias_UQ_filename, Raster(fusion_results.SD_bias, dims=(x_coarse, y_coarse, Band(1:1)), missingval=NaN))
 
+# posterior_flag_filename = posterior_filename[1:end-4]* "_flag.tif"
+# flag_image = Raster(fill(1, x_fine_size, y_fine_size, 1), dims=(x_fine, y_fine, Band(1:1)), missingval=NaN)
+
+# hls_obs = sum(.!isnan.(fine_images),dims=3) .> 0
+# flag_image[hls_obs] .= 0
+# flag_image[flag_image .= 0.3] .= 2
+# write(posterior_flag_filename, Raster(fusion_results.mean, dims=(x_fine, y_fine, Band(1:1)), missingval=NaN))

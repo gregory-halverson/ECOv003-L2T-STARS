@@ -1,30 +1,49 @@
 using Glob
 using Dates
 using Rasters
-using Plots
 using LinearAlgebra
-using STARS
-using STARS.BBoxes
-using STARS.sentinel_tiles
-using STARS.HLS
-using STARS.VNP43
-using STARS.STARS
+using STARSDataFusion
+using STARSDataFusion.BBoxes
+using STARSDataFusion.sentinel_tiles
+using STARSDataFusion.HLS
+using STARSDataFusion.VNP43
 using Logging
 using Pkg
 using Statistics
-
-# include(joinpath(@__DIR__,"STARS_jl/src/STARS2.jl"))
-include("./STARS_jl/src/STARS2.jl")
-
+using Distributed
 Pkg.add("OpenSSL")
-
 using HTTP
+using JSON
 
-BLAS.set_num_threads(1)
+function read_json(file::String)::Dict
+    open(file, "r") do f
+        return JSON.parse(f)
+    end
+end
 
-DEFAULT_MEAN = 0.3
+function write_json(file::String, data::Dict)
+    open(file, "w") do f
+        JSON.print(f, data)
+    end
+end
+
+@info "processing STARS data fusion"
+
+wrkrs = parse(Int64, ARGS[1])
+# wrkrs = 8
+
+@info "starting $(wrkrs) workers"
+addprocs(wrkrs) ## need to set num workers
+
+@everywhere using STARSDataFusion
+@everywhere using LinearAlgebra
+@everywhere BLAS.set_num_threads(1)
+
+DEFAULT_MEAN = 0.12
 DEFAULT_SD = 0.01
-DEFAULT_BIAS = 0.0
+
+#### add bias components
+DEFAULT_BIAS_MEAN = 0.0
 DEFAULT_BIAS_SD = 0.001
 
 struct CustomLogger <: AbstractLogger
@@ -47,50 +66,55 @@ global_logger(CustomLogger(stdout, Logging.Info))
 
 # command = f'cd "{STARS_source_directory}" && julia --project=@. "{julia_script_filename}" "{tile}" "{coarse_cell_size}" "{fine_cell_size}" "{VIIRS_start_date}" "{VIIRS_end_date}" "{HLS_start_date}" "{HLS_end_date}" "{coarse_directory}" "{fine_directory}" "{posterior_filename}" "{posterior_UQ_filename}" "{posterior_bias_filename}" "{posterior_bias_UQ_filename}" "{prior_filename}" "{prior_UQ_filename}" "{prior_bias_filename}" "{prior_bias_UQ_filename}"'
 
-@info "processing STARS data fusion"
-tile = ARGS[1]
+tile = ARGS[2]
 @info "tile: $(tile)"
-coarse_cell_size = parse(Int64, ARGS[2])
+coarse_cell_size = parse(Int64, ARGS[3])
 @info "coarse cell size: $(coarse_cell_size)"
-fine_cell_size = parse(Int64, ARGS[3])
+fine_cell_size = parse(Int64, ARGS[4])
 @info "fine cell size: $(fine_cell_size)"
-VIIRS_start_date = Date(ARGS[4])
+VIIRS_start_date = Date(ARGS[5])
 @info "VIIRS start date: $(VIIRS_start_date)"
-VIIRS_end_date = Date(ARGS[5])
+VIIRS_end_date = Date(ARGS[6])
 @info "VIIRS end date: $(VIIRS_end_date)"
-HLS_start_date = Date(ARGS[6])
+HLS_start_date = Date(ARGS[7])
 @info "HLS start date: $(HLS_start_date)"
-HLS_end_date = Date(ARGS[7])
+HLS_end_date = Date(ARGS[8])
 @info "HLS end date: $(HLS_end_date)"
-coarse_directory = ARGS[8]
+coarse_directory = ARGS[9]
 @info "coarse inputs directory: $(coarse_directory)"
-fine_directory = ARGS[9]
+fine_directory = ARGS[10]
 @info "fine inputs directory: $(fine_directory)"
-posterior_filename = ARGS[10]
+posterior_filename = ARGS[11]
 @info "posterior filename: $(posterior_filename)"
-posterior_UQ_filename = ARGS[11]
+posterior_UQ_filename = ARGS[12]
 @info "posterior UQ filename: $(posterior_UQ_filename)"
-posterior_bias_filename = ARGS[12]
+posterior_flag_filename = ARGS[13]
+@info "posterior flag filename: $(posterior_flag_filename)"
+posterior_bias_filename = ARGS[14]
 @info "posterior bias filename: $(posterior_bias_filename)"
-posterior_bias_UQ_filename = ARGS[13]
-@info "posterior bias UQ filename: $(posterior_bias_UQ_filename)"
+posterior_bias_UQ_filename = ARGS[15]
+@info "prior bias UQ filename: $(posterior_bias_UQ_filename)"
 
-if size(ARGS)[1] >= 17
-    prior_filename = ARGS[14]
+if size(ARGS)[1] >= 19
+    prior_filename = ARGS[16]
     @info "prior filename: $(prior_filename)"
-    prior_mean = Raster(prior_filename)
-    prior_UQ_filename = ARGS[15]
+    prior_mean = Array(Raster(prior_filename))
+    prior_UQ_filename = ARGS[17]
     @info "prior UQ filename: $(prior_UQ_filename)"
-    prior_sd = Raster(prior_UQ_filename)
-    prior_bias_filename = ARGS[16]
+    prior_sd = Array(Raster(prior_UQ_filename))
+    prior_bias_filename = ARGS[18]
     @info "prior bias filename: $(prior_bias_filename)"
-    prior_bias_mean = Raster(prior_bias_filename)
-    prior_bias_UQ_filename = ARGS[17]
+    prior_bias_mean = Array(Raster(prior_bias_filename))
+    prior_bias_UQ_filename = ARGS[19]
     @info "prior bias UQ filename: $(prior_bias_UQ_filename)"
-    prior_bias_sd = Raster(prior_bias_UQ_filename)
-    prior = DataFusionState(prior_mean, prior_sd, prior_bias_mean, prior_bias_sd, nothing)
+    prior_bias_sd = Array(Raster(prior_bias_UQ_filename))
+
+    ## if we do flag as HLS observed within last 7 days then we don't depend on prior flags
+    # prior_flag_filename = ARGS[20]
+    # @info "prior flag filename: $(prior_flag_filename)"
+    # prior_flag = Raster(prior_flag_filename)
 else
-    prior = nothing
+    prior_mean = nothing
 end
 
 x_coarse, y_coarse = sentinel_tile_dims(tile, coarse_cell_size)
@@ -113,6 +137,7 @@ fine_dates_found = [Date(split(basename(filename), "_")[3]) for filename in fine
 coarse_start_date = VIIRS_start_date
 coarse_end_date = VIIRS_end_date
 
+fine_flag_start_date = HLS_end_date - Day(7)
 fine_start_date = HLS_start_date
 fine_end_date = HLS_end_date
 
@@ -141,6 +166,7 @@ for (i, date) in enumerate(covariance_dates)
         filename = coarse_image_filenames[match]
         @info "ingesting coarse image on $(date): $(filename)"
         covariance_image = Raster(reshape(Raster(filename), x_coarse_size, y_coarse_size, 1), dims=timestep_dims, missingval=NaN)
+        replace!(covariance_image, missing => NaN)
         @info size(covariance_image)
     end
 
@@ -153,17 +179,6 @@ covariance_images = Raster(cat(covariance_images..., dims=3), dims=covariance_di
 # estimate spatial var parameter
 n_eff = compute_n_eff(Int(round(coarse_cell_size / fine_cell_size)), 2, smoothness=1.5) ## Matern: range = 200m, smoothness = 1.5
 sp_var = fast_var_est(covariance_images, n_eff_agg = n_eff)
-# cov_pars_raster = Raster(fill(NaN, size(covariance_images)[1], size(covariance_images)[2], 4), dims=(covariance_images.dims[1:2]...,Band(1:4)), missingval=covariance_images.missingval)
-# cov_pars_raster[:,:,1] = sp_var
-# cov_pars_raster[:,:,2] .= 200
-# cov_pars_raster[:,:,3] .= 1e-10
-# cov_pars_raster[:,:,4] .= 1.5
-
-# cov_pars = ones((size(covariance_images)[1], size(covariance_images)[2], 4))
-# cov_pars[:,:,1] = Array{Float64}(sp_var)
-# cov_pars[:,:,2] .= 200
-# cov_pars[:,:,3] .= 1e-10
-# cov_pars[:,:,4] .= 1.5
 
 coarse_images = []
 coarse_dates = Vector{Date}(undef,0)
@@ -171,19 +186,19 @@ coarse_dates = Vector{Date}(undef,0)
 tk=1
 for (i, date) in enumerate(dates)
     date = Dates.format(date, dateformat"yyyy-mm-dd")
-    match = findfirst(x -> occursin(date, x), coarse_image_filenames)
+    matched = findfirst(x -> occursin(date, x), coarse_image_filenames)
 
-
-    if match === nothing
+    if matched === nothing
         @info "coarse image is not available on $(date)"
         # coarse_image = Raster(fill(NaN, x_coarse_size, y_coarse_size, 1), dims=timestep_dims, missingval=NaN)
         # @info size(coarse_image)
     else
         timestep_index = Band(tk:tk)
         timestep_dims = (x_coarse, y_coarse, timestep_index)
-        filename = coarse_image_filenames[match]
+        filename = coarse_image_filenames[matched]
         @info "ingesting coarse image on $(date): $(filename)"
         coarse_image = Raster(reshape(Raster(filename), x_coarse_size, y_coarse_size, 1), dims=timestep_dims, missingval=NaN)
+        replace!(coarse_image, missing => NaN)
         @info size(coarse_image)
         push!(coarse_dates, dates[i])
         push!(coarse_images, coarse_image)
@@ -219,6 +234,7 @@ for (i, date) in enumerate(dates)
         filename = fine_image_filenames[match]
         @info "ingesting fine image on $(date): $(filename)"
         fine_image = Raster(reshape(Raster(filename), x_fine_size, y_fine_size, 1), dims=timestep_dims, missingval=NaN)
+        replace!(fine_image, missing => NaN)
         @info size(fine_image)
         push!(fine_images, fine_image)
         push!(fine_dates, dates[i])
@@ -240,32 +256,58 @@ end
 target_date = dates[end]
 target_time = length(dates)
 
-if isnothing(prior)
-    mm = trues(size(fine_images)[1:2])
-    data_pixels = sum(.!isnan.(fine_images),dims=3) 
-    ### uncomment to keep viirs-only pixels 
-    # if sum(data_pixels.==0) > 0
-    #     coarse_nans = resample(sum(.!isnan.(coarse_images),dims=3), to=fine_images[:,:,1], method=:near)
-    #     data_pixels .+= coarse_nans 
-    # end
-    mm[data_pixels[:,:,1] .> 0] .= false
-    if sum(mm .> 0) == 0
-        mm = nothing
+## 0, 1 mask
+fine_pixels = sum(.!isnan.(fine_images),dims=3)
+if sum(fine_pixels.==0) > 0
+    if fine_flag_start_date < fine_start_date
+        flag_dates = [fine_flag_start_date + Day(d - 1) for d in 1:((fine_start_date - Day(1) - fine_flag_start_date).value + 1)]
+        tf = Ti(flag_dates)
+        fine_flag_dims = (x_fine, y_fine, tf)
+
+        for (i, date) in enumerate(flag_dates)
+            date = Dates.format(date, dateformat"yyyy-mm-dd")
+            match = findfirst(x -> occursin(date, x), fine_image_filenames)
+
+            if match === nothing
+                @info "fine image for 7-day flag is not available on $(date)"
+            else
+                timestep_dims = (x_fine, y_fine, Band(1:1))
+                filename = fine_image_filenames[match]
+                @info "ingesting fine image for 7-day flag on $(date): $(filename)"
+                fine_image = Raster(reshape(Raster(filename), x_fine_size, y_fine_size, 1), dims=timestep_dims, missingval=NaN)
+                replace!(fine_image, missing => NaN)
+
+                fine_pixels .+= sum(.!isnan.(fine_image),dims=3)
+            end
+        end
     end
-elseif sum(isnan.(prior.mean)) > 0
-    mm = Array(isnan.(prior.mean))
-    data_pixels = sum(.!isnan.(fine_images),dims=3)    
-    ### uncomment to keep viirs-only pixels 
-    # if sum(data_pixels.==0) > 0
-    #     coarse_nans = resample(sum(.!isnan.(coarse_images),dims=3), to=fine_images[:,:,1], method=:near)
-    #     data_pixels .+= coarse_nans 
-    # end
-    mm[data_pixels[:,:,1] .> 0] .= false
-    if sum(mm .> 0) == 0
-        mm = nothing
+end
+
+hls_flag = Array(fine_pixels[:,:,1] .== 0)
+
+### nan pixels with no historical data 
+if isnothing(prior_mean)
+    prior_flag = trues(size(fine_images)[1:2])
+    fine_obs = sum(.!isnan.(fine_images),dims=3) 
+    ## uncomment to keep viirs-only pixels 
+    if sum(fine_obs.==0) > 0
+        coarse_nans = resample(sum(.!isnan.(coarse_images),dims=3), to=fine_images[:,:,1], method=:near)
+        prior_flag[coarse_nans[:,:,1] .> 0] .= false
     end
+
+    prior_flag[fine_pixels[:,:,1] .> 0] .= false
+
+elseif sum(isnan.(prior_mean) > 0)
+    prior_flag = isnan.(prior_mean[:,:,1]) > 0
+    fine_obs = sum(.!isnan.(fine_images),dims=3) 
+    ## uncomment to keep viirs-only pixels 
+    if sum(fine_obs.==0) > 0
+        coarse_nans = resample(sum(.!isnan.(coarse_images),dims=3), to=fine_images[:,:,1], method=:near)
+        prior_flag[coarse_nans[:,:,1] .> 0] .= false
+    end
+    prior_flag[fine_pixels[:,:,1] .> 0] .= false
 else
-    mm = nothing
+    prior_flag = falses(size(fine_images)[1:2])  
 end
 
 @info "running data fusion"
@@ -286,15 +328,12 @@ coarse_csize = collect(cell_size(coarse_images))
 
 fine_geodata = STARSInstrumentGeoData(fine_origin, fine_csize, fine_ndims, 0, fine_times)
 coarse_geodata = STARSInstrumentGeoData(coarse_origin, coarse_csize, coarse_ndims, 2, coarse_times)
-# window_geodata = STARSInstrumentGeoData(coarse_origin, coarse_csize, coarse_ndims, 0, coarse_times)
-
-# target_geodata = STARSInstrumentGeoData(fine_origin, fine_csize, fine_ndims, 0, 1:length(dates))
 
 fine_data = STARSInstrumentData(fine_array, 0.0, 1e-6, false, nothing, abs.(fine_csize), fine_times, [1. 1.])
-coarse_data = STARSInstrumentData(coarse_array, 0.0, 1e-6, true, [1.0, 1e-6], abs.(coarse_csize), coarse_times, [1. 1.])
+coarse_data = STARSInstrumentData(coarse_array, 0.0, 1e-6, true, [1.0,1e-6], abs.(coarse_csize), coarse_times, [1. 1.])
 
-nsamp=100
-window_buffer = 2
+nsamp=60
+window_buffer = 3 ## set these differently for NDVI and albedo?
 
 cov_pars = ones((size(fine_images)[1], size(fine_images)[2], 4))
 
@@ -302,57 +341,58 @@ sp_rs = resample(log.(sqrt.(sp_var[:,:,1])); to=fine_images[:,:,1], size=size(fi
 sp_rs[isnan.(sp_rs)] .= nanmean(sp_rs) ### the resampling won't go outside extent
 
 cov_pars[:,:,1] = Array{Float64}(exp.(sp_rs))
-cov_pars[:,:,2] .= 200
+cov_pars[:,:,2] .= coarse_cell_size
+# cov_pars[:,:,2] .= 200.0
 cov_pars[:,:,3] .= 1e-10
-cov_pars[:,:,4] .= 1.5
+cov_pars[:,:,4] .= 0.5
 
-@time if isnothing(prior)
-    fused_images, fused_sd_images, fused_bias_images, fused_bias_sd_images = coarse_fine_scene_fusion_ns(fine_data,
+if isnothing(prior_mean)
+    fused_images, fused_sd_images, fused_bias_images, fused_bias_sd_images = coarse_fine_scene_fusion_cbias_pmap(fine_data,
         coarse_data,
         fine_geodata, 
         coarse_geodata,
-        coarse_ndims,
         DEFAULT_MEAN .* ones(fine_ndims...),
         DEFAULT_SD^2 .* ones(fine_ndims...), 
-        DEFAULT_BIAS .* ones(coarse_ndims...),
-        DEFAULT_BIAS_SD^2 .* ones(coarse_ndims...),
+        DEFAULT_BIAS_MEAN .* ones(coarse_ndims...),
+        DEFAULT_BIAS_SD^2 .* ones(coarse_ndims...), 
         cov_pars;
         nsamp = nsamp,
         window_buffer = window_buffer,
         target_times = [target_time], 
-        spatial_mod = mat32_cor,                                           
-        obs_operator = unif_weighted_obs_operator,
+        spatial_mod = exp_cor,                                           
+        obs_operator = unif_weighted_obs_operator_centroid,
         state_in_cov = false,
         cov_wt = 0.2,
-        nb_coarse = 1.0);
+        nb_coarse = 2.0);
 else
     ## fill in prior mean with mean prior
-    pmean = Array(prior.mean)
-    nkp = isnan.(pmean)
+    nkp = isnan.(prior_mean)
     if sum(nkp) > 0
-        mp = nanmean(pmean)
-        pmean[nkp] .= mp
+        mp = nanmean(prior_mean)
+        prior_mean[nkp] .= mp
     end
 
-    fused_images, fused_sd_images, fused_bias_images, fused_bias_sd_images = coarse_fine_scene_fusion_ns(fine_data,
+    fused_images, fused_sd_images, fused_bias_images, fused_bias_sd_images = coarse_fine_scene_fusion_cbias_pmap(fine_data,
         coarse_data,
         fine_geodata, 
         coarse_geodata,
-        coarse_ndims,
-        pmean,
-        Array(prior.SD.^2),
-        Array(prior.mean_bias),
-        Array(prior.SD_bias.^2),
+        prior_mean,
+        prior_sd.^2, 
+        prior_bias,
+        prior_bias_sd.^2, 
         cov_pars;
         nsamp = nsamp,
         window_buffer = window_buffer,
         target_times = [target_time], 
-        spatial_mod = mat32_cor,                                           
-        obs_operator = unif_weighted_obs_operator,
+        spatial_mod = exp_cor,                                           
+        obs_operator = unif_weighted_obs_operator_centroid,
         state_in_cov = false,
         cov_wt = 0.2,
-        nb_coarse = 1.0);
-end
+        nb_coarse = 2.0);
+end;
+
+## remove workers
+rmprocs(workers())
 
 if occursin("NDVI", posterior_filename)
     clamp!(fused_images, -1, 1) # NDVI clipped to [-1,1] range
@@ -361,18 +401,17 @@ else
 end
 
 dd = fused_images[:,:,:]
+dd[prior_flag,:] .= NaN # set no data to NaN
 
-### mask pixels with no historical HLS data 
-if !isnothing(mm)
-    dd[mm,:] .= NaN
-end
 fused_raster = Raster(dd, dims=(x_fine, y_fine, Band(1:1)), missingval=NaN)
+flag_raster = Raster(Int.(hls_flag), dims=(x_fine, y_fine), missingval=NaN)
 
 @info "writing fused mean: $(posterior_filename)"
 write(posterior_filename, fused_raster, force=true)
+@info "writing fused flag: $(posterior_flag_filename)"
+write(posterior_flag_filename, flag_raster, force=true)
 @info "writing fused SD: $(posterior_UQ_filename)"
 write(posterior_UQ_filename, Raster(fused_sd_images, dims=(x_fine, y_fine, Band(1:1)), missingval=NaN), force=true)
-
 @info "writing bias mean: $(posterior_bias_filename)"
 write(posterior_bias_filename, Raster(fused_bias_images, dims=(x_coarse, y_coarse, Band(1:1)), missingval=NaN), force=true)
 @info "writing bias SD: $(posterior_bias_UQ_filename)"
