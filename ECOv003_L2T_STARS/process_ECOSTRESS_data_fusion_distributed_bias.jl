@@ -93,7 +93,7 @@ posterior_flag_filename = ARGS[13]
 posterior_bias_filename = ARGS[14]
 @info "posterior bias filename: $(posterior_bias_filename)"
 posterior_bias_UQ_filename = ARGS[15]
-@info "prior bias UQ filename: $(posterior_bias_UQ_filename)"
+@info "posterior bias UQ filename: $(posterior_bias_UQ_filename)"
 
 if size(ARGS)[1] >= 19
     prior_filename = ARGS[16]
@@ -109,6 +109,10 @@ if size(ARGS)[1] >= 19
     @info "prior bias UQ filename: $(prior_bias_UQ_filename)"
     prior_bias_sd = Array(Raster(prior_bias_UQ_filename))
 
+    replace!(prior_bias_mean, missing => NaN)
+    replace!(prior_bias_sd, missing => NaN)
+    replace!(prior_mean, missing => NaN)
+    replace!(prior_sd, missing => NaN)
     ## if we do flag as HLS observed within last 7 days then we don't depend on prior flags
     # prior_flag_filename = ARGS[20]
     # @info "prior flag filename: $(prior_flag_filename)"
@@ -296,9 +300,8 @@ if isnothing(prior_mean)
     end
 
     prior_flag[fine_pixels[:,:,1] .> 0] .= false
-
-elseif sum(isnan.(prior_mean) > 0)
-    prior_flag = isnan.(prior_mean[:,:,1]) > 0
+elseif sum(isnan.(prior_mean)) .> 0
+    prior_flag = isnan.(prior_mean[:,:,1]) .> 0
     fine_obs = sum(.!isnan.(fine_images),dims=3) 
     ## uncomment to keep viirs-only pixels 
     if sum(fine_obs.==0) > 0
@@ -332,8 +335,8 @@ coarse_geodata = STARSInstrumentGeoData(coarse_origin, coarse_csize, coarse_ndim
 fine_data = STARSInstrumentData(fine_array, 0.0, 1e-6, false, nothing, abs.(fine_csize), fine_times, [1. 1.])
 coarse_data = STARSInstrumentData(coarse_array, 0.0, 1e-6, true, [1.0,1e-6], abs.(coarse_csize), coarse_times, [1. 1.])
 
-nsamp=60
-window_buffer = 3 ## set these differently for NDVI and albedo?
+nsamp=100
+window_buffer = 4 ## set these differently for NDVI and albedo?
 
 cov_pars = ones((size(fine_images)[1], size(fine_images)[2], 4))
 
@@ -378,7 +381,7 @@ else
         coarse_geodata,
         prior_mean,
         prior_sd.^2, 
-        prior_bias,
+        prior_bias_mean,
         prior_bias_sd.^2, 
         cov_pars;
         nsamp = nsamp,

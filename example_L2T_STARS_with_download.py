@@ -18,18 +18,27 @@ logging.getLogger().handlers = []
 # Set working directory
 
 # %%
-working_directory = "~/data/ECOSTRESS_demo_C2"
+working_directory = "/Users/maggiej/data/ECOSTRESS_demo_C2"
 
 # %% [markdown]
 # Retrieve LST LSTE granule from CMR API for target date
 
 # %%
+# L2T_LSTE_granule = download_ECOSTRESS_granule(
+#     product="L2T_LSTE", 
+#     orbit=35800,
+#     scene=3,
+#     tile="11SPS", 
+#     aquisition_date="2024-10-29",
+#     parent_directory=working_directory
+# )
+
 L2T_LSTE_granule = download_ECOSTRESS_granule(
     product="L2T_LSTE", 
-    orbit=35800,
-    scene=3,
+    orbit=35820,
+    scene=12,
     tile="11SPS", 
-    aquisition_date="2024-10-29",
+    aquisition_date="2024-10-30",
     parent_directory=working_directory
 )
 
@@ -45,12 +54,20 @@ L2T_LSTE_granule.ST_C
 # Retrieve L2T STARS granule from CMR API as prior
 
 # %%
+# L2T_STARS_granule = download_ECOSTRESS_granule(
+#     product="L2T_STARS", 
+#     tile="11SPS", 
+#     aquisition_date="2024-10-22",
+#     parent_directory=working_directory
+# )
+
 L2T_STARS_granule = download_ECOSTRESS_granule(
     product="L2T_STARS", 
     tile="11SPS", 
-    aquisition_date="2024-10-22",
+    aquisition_date="2024-10-29",
     parent_directory=working_directory
 )
+
 
 L2T_STARS_granule
 
@@ -77,7 +94,7 @@ with open(runconfig_filename, "r") as f:
     print(f.read())
 
 # %%
-exit_code = L2T_STARS(runconfig_filename=runconfig_filename, use_VNP43NRT=False, threads=1, num_workers=8)
+exit_code = L2T_STARS(runconfig_filename=runconfig_filename, use_VNP43NRT=False, threads=1, num_workers=8, remove_input_staging = False,remove_prior = False, remove_posterior = False)
 exit_code
 
 # %%
