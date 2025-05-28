@@ -42,6 +42,15 @@ L2T_LSTE_granule = download_ECOSTRESS_granule(
     parent_directory=working_directory
 )
 
+# L2T_LSTE_granule = download_ECOSTRESS_granule(
+#     product="L2T_LSTE", 
+#     orbit=35861,
+#     scene=6,
+#     tile="11SPS", 
+#     aquisition_date="2024-11-02",
+#     parent_directory=working_directory
+# )
+
 L2T_LSTE_granule
 
 # %% [markdown]
@@ -68,6 +77,12 @@ L2T_STARS_granule = download_ECOSTRESS_granule(
     parent_directory=working_directory
 )
 
+# L2T_STARS_granule = download_ECOSTRESS_granule(
+#     product="L2T_STARS", 
+#     tile="11SPS", 
+#     aquisition_date="2024-10-30",
+#     parent_directory=working_directory
+# )
 
 L2T_STARS_granule
 
@@ -75,7 +90,7 @@ L2T_STARS_granule
 # Load and display preview of vegetation index
 
 # %%
-L2T_STARS_granule.NDVI
+L2T_STARS_granule.albedo
 
 # %% [markdown]
 # Generate XML run-config file for L2T STARS PGE run
@@ -94,7 +109,7 @@ with open(runconfig_filename, "r") as f:
     print(f.read())
 
 # %%
-exit_code = L2T_STARS(runconfig_filename=runconfig_filename, use_VNP43NRT=False, threads=1, num_workers=8, remove_input_staging = False,remove_prior = False, remove_posterior = False)
+exit_code = L2T_STARS(runconfig_filename=runconfig_filename, use_VNP43NRT=True, threads=1, num_workers=8, remove_input_staging = False,remove_prior = False, remove_posterior = False)
 exit_code
 
 # %%
