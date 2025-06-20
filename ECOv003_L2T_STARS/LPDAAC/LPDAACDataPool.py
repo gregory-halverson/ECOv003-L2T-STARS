@@ -28,7 +28,7 @@ from pycksum import cksum
 
 import colored_logging as cl
 
-from ..exit_codes import DownloadFailed
+from ECOv003_exit_codes import *
 
 CONNECTION_CLOSE = {
     "Connection": "close",

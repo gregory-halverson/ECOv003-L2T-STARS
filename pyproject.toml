@@ -18,6 +18,7 @@ dependencies = [
     "colored-logging",
     "ECOv002-CMR>=1.0.4",
     "ECOv002-granules",
+    "ECOv003-exit-codes",
     "GEOS5FP",
     "h5py",
     "harmonized-landsat-sentinel>=1.1.0",

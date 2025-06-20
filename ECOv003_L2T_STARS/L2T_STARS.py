@@ -27,6 +27,7 @@ from harmonized_landsat_sentinel import HLSTileNotAvailable, HLSSentinelNotAvail
 from harmonized_landsat_sentinel import HLSBandNotAcquired, HLS2CMR, CMR_SEARCH_URL
 
 from ECOv002_granules import L2TLSTE, L2TSTARS, NDVI_COLORMAP, ALBEDO_COLORMAP
+from ECOv003_exit_codes import *
 
 from .LPDAAC.LPDAACDataPool import LPDAACServerUnreachable
 
@@ -35,7 +36,6 @@ from .VIIRS.VNP43IA4 import VNP43IA4
 from .VIIRS.VNP43MA3 import VNP43MA3
 from .VNP43NRT import VNP43NRT
 from .daterange import get_date
-from .exit_codes import *
 from .runconfig import ECOSTRESSRunConfig
 from .timer import Timer
 
