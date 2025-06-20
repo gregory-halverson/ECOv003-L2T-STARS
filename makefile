@@ -40,6 +40,10 @@ environment:
 remove-environment:
 	mamba env remove -y -n $(ENVIRONMENT_NAME)
 
+install-julia:
+	julia -e 'using Pkg; Pkg.add("STARSDataFusion")'
+	julia -e 'using Pkg; Pkg.develop(path="ECOv003_L2T_STARS/VNP43NRT_jl")'
+
 colima-start:
 	colima start -m 16 -a x86_64 -d 100 
 
