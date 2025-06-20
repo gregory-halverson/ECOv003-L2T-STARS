@@ -636,7 +636,7 @@ def process_julia_data_fusion(
     
     instantiate_STARS_jl(STARS_source_directory) # Project.toml located in the same directory as process_ECOSTRESS_data_fusion_distributed_bias.jl
 
-    command = f'export JULIA_NUM_THREADS={threads}; julia --project="{STARS_source_directory}" --threads {threads} "{julia_script_filename}" {num_workers} "{tile}" "{coarse_cell_size}" "{fine_cell_size}" "{VIIRS_start_date}" "{VIIRS_end_date}" "{HLS_start_date}" "{HLS_end_date}" "{coarse_directory}" "{fine_directory}" "{posterior_filename}" "{posterior_UQ_filename}" "{posterior_flag_filename}" "{posterior_bias_filename}" "{posterior_bias_UQ_filename}"'
+    command = f'export JULIA_NUM_THREADS={threads}; julia --threads {threads} "{julia_script_filename}" {num_workers} "{tile}" "{coarse_cell_size}" "{fine_cell_size}" "{VIIRS_start_date}" "{VIIRS_end_date}" "{HLS_start_date}" "{HLS_end_date}" "{coarse_directory}" "{fine_directory}" "{posterior_filename}" "{posterior_UQ_filename}" "{posterior_flag_filename}" "{posterior_bias_filename}" "{posterior_bias_UQ_filename}"'
 
     if all([filename is not None and exists(filename) for filename in [prior_filename, prior_UQ_filename, prior_bias_filename, prior_bias_UQ_filename]]):
         logger.info("passing prior into Julia data fusion system")

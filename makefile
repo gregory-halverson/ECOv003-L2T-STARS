@@ -41,6 +41,13 @@ remove-environment:
 	mamba env remove -y -n $(ENVIRONMENT_NAME)
 
 install-julia:
+	julia -e 'using Pkg; Pkg.add("Glob")'
+	julia -e 'using Pkg; Pkg.add("DimensionalData")'
+	julia -e 'using Pkg; Pkg.add("HTTP")'
+	julia -e 'using Pkg; Pkg.add("JSON")'
+	julia -e 'using Pkg; Pkg.add("ArchGDAL")'
+	julia -e 'using Pkg; Pkg.add("Rasters")'
+	# julia -e 'using Pkg; Pkg.add(Pkg.PackageSpec(name="Rasters", version="0.5.3"))'
 	julia -e 'using Pkg; Pkg.add("STARSDataFusion")'
 	julia -e 'using Pkg; Pkg.develop(path="ECOv003_L2T_STARS/VNP43NRT_jl")'
 

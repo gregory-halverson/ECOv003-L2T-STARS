@@ -104,6 +104,18 @@ relative_azimuth_stack = stack_timeseries(relative_azimuth_images)
 SZA = Raster(SZA_filename)
 SZA_flat = vec(SZA)
 
+# --- Handle missing values: replace `missing` with `NaN` in all stacks and SZA_flat ---
+
+function replace_missing_with_nan(arr)
+    return map(x -> ismissing(x) ? NaN : x, arr)
+end
+
+reflectance_stack = replace_missing_with_nan(reflectance_stack)
+solar_zenith_stack = replace_missing_with_nan(solar_zenith_stack)
+sensor_zenith_stack = replace_missing_with_nan(sensor_zenith_stack)
+relative_azimuth_stack = replace_missing_with_nan(relative_azimuth_stack)
+SZA_flat = replace_missing_with_nan(SZA_flat)
+
 results = NRT_BRDF_all(reflectance_stack, solar_zenith_stack, sensor_zenith_stack, relative_azimuth_stack, SZA_flat)
 
 mkpath(output_directory)
@@ -114,44 +126,44 @@ date_stamp = Dates.format(end_date, date_format)
 WSA = Raster(reshape(results[:,1], (tile_width_cells, tile_width_cells)), dims=(x_dim, y_dim), missingval=NaN)
 WSA_filename = joinpath(output_directory, "$(date_stamp)_WSA.tif")
 @info "writing WSA: $(WSA_filename)"
-write(WSA_filename, WSA)
+write(WSA_filename, WSA; force=true)
 
 BSA = Raster(reshape(results[:,2], (tile_width_cells, tile_width_cells)), dims=(x_dim, y_dim), missingval=NaN)
 BSA_filename = joinpath(output_directory, "$(date_stamp)_BSA.tif")
 @info "writing BSA: $(BSA_filename)"
-write(BSA_filename, BSA)
+write(BSA_filename, BSA; force=true)
 
 NBAR = Raster(reshape(results[:,3], (tile_width_cells, tile_width_cells)), dims=(x_dim, y_dim), missingval=NaN)
 NBAR_filename = joinpath(output_directory, "$(date_stamp)_NBAR.tif")
 @info "writing NBAR: $(NBAR_filename)"
-write(NBAR_filename, NBAR)
+write(NBAR_filename, NBAR; force=true)
 
 WSA_SE = Raster(reshape(results[:,4], (tile_width_cells, tile_width_cells)), dims=(x_dim, y_dim), missingval=NaN)
 WSA_SE_filename = joinpath(output_directory, "$(date_stamp)_WSA_SE.tif")
 @info "writing WSA_SE: $(WSA_SE_filename)"
-write(WSA_SE_filename, WSA_SE)
+write(WSA_SE_filename, WSA_SE; force=true)
 
 BSA_SE = Raster(reshape(results[:,5], (tile_width_cells, tile_width_cells)), dims=(x_dim, y_dim), missingval=NaN)
 BSA_SE_filename = joinpath(output_directory, "$(date_stamp)_BSA_SE.tif")
 @info "writing BSA_SE: $(BSA_SE_filename)"
-write(BSA_SE_filename, BSA_SE)
+write(BSA_SE_filename, BSA_SE; force=true)
 
 NBAR_SE = Raster(reshape(results[:,6], (tile_width_cells, tile_width_cells)), dims=(x_dim, y_dim), missingval=NaN)
 NBAR_SE_filename = joinpath(output_directory, "$(date_stamp)_NBAR_SE.tif")
 @info "writing NBAR_SE: $(NBAR_SE_filename)"
-write(NBAR_SE_filename, NBAR_SE)
+write(NBAR_SE_filename, NBAR_SE; force=true)
 
 BRDF_SE = Raster(reshape(results[:,7], (tile_width_cells, tile_width_cells)), dims=(x_dim, y_dim), missingval=NaN)
 BRDF_SE_filename = joinpath(output_directory, "$(date_stamp)_BRDF_SE.tif")
 @info "writing BRDF_SE: $(BRDF_SE_filename)"
-write(BRDF_SE_filename, BRDF_SE)
+write(BRDF_SE_filename, BRDF_SE; force=true)
 
 BRDF_R2 = Raster(reshape(results[:,8], (tile_width_cells, tile_width_cells)), dims=(x_dim, y_dim), missingval=NaN)
 BRDF_R2_filename = joinpath(output_directory, "$(date_stamp)_BRDF_R2.tif")
 @info "writing BRDF_R2: $(BRDF_R2_filename)"
-write(BRDF_R2_filename, BRDF_R2)
+write(BRDF_R2_filename, BRDF_R2; force=true)
 
 count = Raster(reshape(results[:,9], (tile_width_cells, tile_width_cells)), dims=(x_dim, y_dim), missingval=NaN)
 count_filename = joinpath(output_directory, "$(date_stamp)_count.tif")
 @info "writing count: $(count_filename)"
-write(count_filename, count)
+write(count_filename, count; force=true)
