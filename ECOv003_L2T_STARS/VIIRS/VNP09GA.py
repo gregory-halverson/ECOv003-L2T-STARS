@@ -22,9 +22,10 @@ import rasters
 from rasters import Raster, RasterGrid, RasterGeometry, Point, Polygon
 from modland import generate_modland_grid
 
+from ECOv003_exit_codes import *
+
 from ..daterange import get_date
 from ..LPDAAC.LPDAACDataPool import RETRIES
-from ..exit_codes import DownloadFailed
 from .VIIRSDataPool import VIIRSGranule
 from .VIIRS_CMR_LOGIN import CMRServerUnreachable, VIIRS_CMR_login
 
