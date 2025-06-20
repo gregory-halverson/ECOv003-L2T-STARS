@@ -64,8 +64,6 @@ end
 
 global_logger(CustomLogger(stdout, Logging.Info))
 
-# command = f'cd "{STARS_source_directory}" && julia --project=@. "{julia_script_filename}" "{tile}" "{coarse_cell_size}" "{fine_cell_size}" "{VIIRS_start_date}" "{VIIRS_end_date}" "{HLS_start_date}" "{HLS_end_date}" "{coarse_directory}" "{fine_directory}" "{posterior_filename}" "{posterior_UQ_filename}" "{posterior_bias_filename}" "{posterior_bias_UQ_filename}" "{prior_filename}" "{prior_UQ_filename}" "{prior_bias_filename}" "{prior_bias_UQ_filename}"'
-
 tile = ARGS[2]
 @info "tile: $(tile)"
 coarse_cell_size = parse(Int64, ARGS[3])

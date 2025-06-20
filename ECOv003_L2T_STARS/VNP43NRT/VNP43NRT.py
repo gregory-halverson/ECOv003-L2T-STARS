@@ -113,7 +113,7 @@ def process_julia_BRDF(
 
     instantiate_VNP43NRT_jl(julia_source_directory)
 
-    command = f'julia --project={julia_source_directory} "{julia_script_filename}" "{band}" "{h}" "{v}" "{tile_width_cells}" "{start_date:%Y-%m-%d}" "{end_date:%Y-%m-%d}" "{reflectance_directory}" "{solar_zenith_directory}" "{sensor_zenith_directory}" "{relative_azimuth_directory}" "{SZA_filename}" "{output_directory}"'
+    command = f'julia "{julia_script_filename}" "{band}" "{h}" "{v}" "{tile_width_cells}" "{start_date:%Y-%m-%d}" "{end_date:%Y-%m-%d}" "{reflectance_directory}" "{solar_zenith_directory}" "{sensor_zenith_directory}" "{relative_azimuth_directory}" "{SZA_filename}" "{output_directory}"'
     logger.info(command)
     subprocess.run(command, shell=True)
 
@@ -295,7 +295,7 @@ class VNP43NRT(VIIRSDownloaderAlbedo, VIIRSDownloaderNDVI):
             GEOS5FP_connection = GEOS5FP(
                 working_directory=working_directory,
                 download_directory=GEOS5FP_download,
-                products_directory=GEOS5FP_products
+                # products_directory=GEOS5FP_products
             )
 
         self.VNP09GA_directory = VNP09GA_directory
