@@ -60,3 +60,4 @@ exclude = []
 
 [project.scripts]
 ECOv003-L2T-STARS = "ECOv003_L2T_STARS.ECOv003_L2T_STARS:main"
+ECOv003-DL = "ECOv003_DL.ECOv003_DL:main"
