@@ -24,8 +24,12 @@ dist:
 	make build
 	make twine-upload
 
-install:
+install-package:
 	pip install -e .[dev]
+
+install:
+	make install-julia
+	make install-package
 
 uninstall:
 	pip uninstall $(PACKAGE_NAME)
