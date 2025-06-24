@@ -1019,7 +1019,8 @@ def latest_datetime(date_in: Union[date, str]) -> datetime:
     return parser.parse(f"{date_string}T23:59:59Z")
 
 
-VIIRS_FILENAME_REGEX = re.compile("^VNP09GA\.[^.]+\.([^.]+)\.002\.\d+\.h5$")
+VIIRS_FILENAME_REGEX = re.compile(r"^VNP09GA\.[^.]+\.([^.]+)\.002\.\d+\.h5$")
+
 def modland_tile_from_filename(filename: str) -> str:
     match = VIIRS_FILENAME_REGEX.match(filename)
     if match is None:
