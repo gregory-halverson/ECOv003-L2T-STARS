@@ -1,3 +1,5 @@
+from datetime import date
+
 class Prior:
     """
     A data class to encapsulate information about a prior L2T_STARS product.

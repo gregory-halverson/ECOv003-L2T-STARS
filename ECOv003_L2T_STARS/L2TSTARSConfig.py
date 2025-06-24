@@ -1,7 +1,7 @@
 from os.path import exists
 import logging
 
-from dateutil import parse
+from dateutil import parser
 
 import colored_logging as cl
 

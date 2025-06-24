@@ -1,3 +1,4 @@
+from typing import Union
 from datetime import date, datetime
 from dateutil.rrule import rrule, DAILY
 import logging

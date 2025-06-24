@@ -7,15 +7,16 @@ from os.path import join, abspath, dirname, expanduser, exists, splitext, basena
 from shutil import which
 from typing import List
 from uuid import uuid4
-
+from dateutil import parser
 import colored_logging as cl
-from ECOv003_granules import L2GLSTE, L2TLSTE
-from ECOV003_exit_codes import LAND_FILTER, SUCCESS_EXIT_CODE, RUNCONFIG_FILENAME_NOT_SUPPLIED, MissingRunConfigValue, \
-    ECOSTRESSExitCodeException, UnableToParseRunConfig
+from ECOv003_granules import L2TLSTE
+from ECOv003_exit_codes import *
 from .runconfig import ECOSTRESSRunConfig, read_runconfig
 from L2T_STARS import DEFAULT_STARS_SOURCES_DIRECTORY, L2T_STARS, generate_L2T_STARS_runconfig, \
     DEFAULT_STARS_INDICES_DIRECTORY, DEFAULT_STARS_MODEL_DIRECTORY
 from sentinel_tiles import SentinelTileGrid
+
+from .generate_L2T_STARS_runconfig import generate_L2T_STARS_runconfig
 
 with open(join(abspath(dirname(__file__)), "version.txt")) as f:
     version = f.read()
@@ -197,7 +198,6 @@ def generate_downloader_runconfig(
     return runconfig_filename
 
 
-# FIXME still re-working from L3G_L4G to DOWNLOADER
 class ECOv003DLConfig(ECOSTRESSRunConfig):
     def __init__(self, filename: str):
         try:
@@ -275,13 +275,14 @@ class ECOv003DLConfig(ECOSTRESSRunConfig):
 
             product_counter = int(runconfig["ProductPathGroup"]["ProductCounter"])
 
-            L2G_LSTE_granule = L2GLSTE(L2G_LSTE_filename)
-            time_UTC = L2G_LSTE_granule.time_UTC
+            # L2G_LSTE_granule = L2GLSTE(L2G_LSTE_filename)
+            # time_UTC = L2G_LSTE_granule.time_UTC
+            time_UTC = parser.parse(basename(L2G_LSTE_filename).split("_")[-3])
 
             timestamp = f"{time_UTC:%Y%m%dT%H%M%S}"
 
             PGE_name = "DOWNLOADER"
-            PGE_version = ECOSTRESS.PGEVersion
+            PGE_version = __version__
 
             self.working_directory = working_directory
             self.L2G_LSTE_filename = L2G_LSTE_filename
@@ -306,7 +307,7 @@ class ECOv003DLConfig(ECOSTRESSRunConfig):
 
 def ECOv003_DL(runconfig_filename: str, tiles: List[str] = None) -> int:
     """
-    ECOSTRESS Collection 2 Downloader PGE
+    ECOSTRESS Collection 3 Downloader PGE
     :param runconfig_filename: filename for XML run-config
     :return: exit code number
     """
@@ -316,7 +317,7 @@ def ECOv003_DL(runconfig_filename: str, tiles: List[str] = None) -> int:
     logger = logging.getLogger(__name__)
 
     try:
-        logger.info(f"ECOSTRESS Collection 2 Downloader PGE ({cl.val(ECOSTRESS.PGEVersion)})")
+        logger.info(f"ECOSTRESS Collection 2 Downloader PGE ({cl.val(__version__)})")
         logger.info(f"run-config: {cl.file(runconfig_filename)}")
         runconfig = ECOv003DLConfig(runconfig_filename)
         working_directory = runconfig.working_directory
@@ -335,10 +336,7 @@ def ECOv003_DL(runconfig_filename: str, tiles: List[str] = None) -> int:
         scene = runconfig.scene
         logger.info(f"scene: {cl.val(scene)}")
 
-        logger.info(f"loading grid from L2G LSTE: {L2G_LSTE_filename}")
-        L2G_LSTE_granule = L2GLSTE(L2G_LSTE_filename)
-        geometry = L2G_LSTE_granule.grid
-        time_UTC = L2G_LSTE_granule.time_UTC
+        time_UTC = parser.parse(basename(L2G_LSTE_filename).split("_")[-3])
 
         L2T_LSTE_filenames = runconfig.L2T_LSTE_filenames
         logger.info(
@@ -392,7 +390,7 @@ def ECOv003_DL(runconfig_filename: str, tiles: List[str] = None) -> int:
 
 def main(argv=sys.argv):
     if len(argv) == 1 or "--version" in argv:
-        print(f"ECOSTRESS Collection 2 Downloader PGE ({ECOSTRESS.PGEVersion})")
+        print(f"ECOSTRESS Collection 2 Downloader PGE ({__version__})")
         print(f"usage: ECOv003_DL RunConfig.xml")
 
         if "--version" in argv:
