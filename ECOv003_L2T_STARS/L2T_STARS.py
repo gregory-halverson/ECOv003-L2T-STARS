@@ -60,6 +60,7 @@ def L2T_STARS(
     remove_posterior: bool = True,
     threads: Union[int, str] = "auto",
     num_workers: int = 4,
+    overwrite: bool = False, # New parameter for overwriting existing files
 ) -> int:
     """
     ECOSTRESS Collection 3 L2T_STARS PGE (Product Generation Executive).
@@ -98,6 +99,8 @@ def L2T_STARS(
                                             Defaults to "auto".
         num_workers (int, optional): Number of Julia workers for distributed processing.
                                      Defaults to 4.
+        overwrite (bool, optional): If True, existing output files will be overwritten.
+                                    Defaults to False.
 
     Returns:
         int: An exit code indicating the success or failure of the PGE execution.
@@ -127,11 +130,17 @@ def L2T_STARS(
         L2T_STARS_browse_filename = runconfig.L2T_STARS_browse_filename
         logger.info(f"Browse filename: " + cl.file(L2T_STARS_browse_filename))
 
-        # Check if the final product already exists to avoid reprocessing
-        if exists(L2T_STARS_zip_filename) and exists(L2T_STARS_browse_filename):
+        # Check if the final product already exists and 'overwrite' is not enabled
+        if not overwrite and exists(L2T_STARS_zip_filename) and exists(L2T_STARS_browse_filename):
             logger.info(f"Found existing L2T STARS file: {L2T_STARS_zip_filename}")
             logger.info(f"Found existing L2T STARS preview: {L2T_STARS_browse_filename}")
+            logger.info("Overwrite option is not enabled, skipping reprocessing.")
             return SUCCESS_EXIT_CODE
+        elif overwrite and exists(L2T_STARS_zip_filename) and exists(L2T_STARS_browse_filename):
+            logger.info(f"Found existing L2T STARS file: {L2T_STARS_zip_filename}")
+            logger.info(f"Found existing L2T STARS preview: {L2T_STARS_browse_filename}")
+            logger.info("Overwrite option is enabled, proceeding with reprocessing.")
+
 
         logger.info(f"Working directory: {cl.dir(working_directory)}")
         logger.info(f"Log file: {cl.file(log_filename)}")
@@ -232,12 +241,17 @@ def L2T_STARS(
         VNP43NRT_products_directory = join(sources_directory, DEFAULT_VNP43NRT_PRODUCTS_DIRECTORY)
         logger.info(f"VNP43NRT products directory: {cl.dir(VNP43NRT_products_directory)}")
 
-        # Re-check for existing product (double-check in case another process created it)
-        if exists(L2T_STARS_zip_filename):
+        # Re-check for existing product (double-check in case another process created it) with overwrite option
+        if not overwrite and exists(L2T_STARS_zip_filename):
             logger.info(
-                f"Found L2T STARS product zip: {cl.file(L2T_STARS_zip_filename)}"
+                f"Found L2T STARS product zip: {cl.file(L2T_STARS_zip_filename)}. Overwrite is False, returning."
             )
             return exit_code
+        elif overwrite and exists(L2T_STARS_zip_filename):
+            logger.info(
+                f"Found L2T STARS product zip: {cl.file(L2T_STARS_zip_filename)}. Overwrite is True, proceeding."
+            )
+
 
         # Initialize HLS data connection
         logger.info(f"Connecting to CMR Search server: {CMR_SEARCH_URL}")
