@@ -20,9 +20,6 @@ L2T_LSTE_granule = download_ECOSTRESS_granule(
     parent_directory=working_directory
 )
 
-# Preview surface temperature
-print("Surface temperature preview:", L2T_LSTE_granule.ST_C)
-
 # Retrieve L2T STARS granule from CMR API as prior
 L2T_STARS_granule = download_ECOSTRESS_granule(
     product="L2T_STARS", 
@@ -30,9 +27,6 @@ L2T_STARS_granule = download_ECOSTRESS_granule(
     aquisition_date="2024-10-29",
     parent_directory=working_directory
 )
-
-# Preview albedo
-print("Albedo preview:", L2T_STARS_granule.albedo)
 
 # Generate XML run-config file for L2T STARS PGE run
 runconfig_filename = generate_L2T_STARS_runconfig(
@@ -43,9 +37,6 @@ runconfig_filename = generate_L2T_STARS_runconfig(
 
 print("Runconfig generated:", runconfig_filename)
 
-with open(runconfig_filename, "r") as f:
-    print(f.read())
-
 # Run L2T STARS PGE
 exit_code = L2T_STARS(
     runconfig_filename=runconfig_filename,
@@ -54,7 +45,8 @@ exit_code = L2T_STARS(
     num_workers=8,
     remove_input_staging=False,
     remove_prior=False,
-    remove_posterior=False
+    remove_posterior=False,
+    overwrite=True
 )
 
 print("L2T STARS PGE exit code:", exit_code)

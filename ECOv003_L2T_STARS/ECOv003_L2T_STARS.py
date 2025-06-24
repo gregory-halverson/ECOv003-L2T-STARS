@@ -26,6 +26,7 @@ def main():
                "  python {sys.argv[0]} --runconfig /path/to/RunConfig.xml\n"
                "  python {sys.argv[0]} --runconfig /path/to/RunConfig.xml --date 2023-01-15\n"
                "  python {sys.argv[0]} --runconfig /path/to/RunConfig.xml --sources-only\n"
+               "  python {sys.argv[0]} --runconfig /path/to/RunConfig.xml --overwrite\n" # Added example usage
     )
 
     # Positional argument for the runconfig file
@@ -129,6 +130,11 @@ def main():
         metavar="COUNT"
     )
     parser.add_argument(
+        "--overwrite", # New argument for overwrite option
+        action="store_true",
+        help="Reproduce the output files even if they already exist.",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
@@ -153,6 +159,7 @@ def main():
         remove_posterior=args.remove_posterior,
         threads=args.threads,
         num_workers=args.num_workers,
+        overwrite=args.overwrite, # Pass the new overwrite argument
     )
 
     sys.exit(exit_code)
