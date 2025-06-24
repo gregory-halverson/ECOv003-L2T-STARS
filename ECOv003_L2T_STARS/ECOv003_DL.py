@@ -10,9 +10,9 @@ from uuid import uuid4
 
 import colored_logging as cl
 from ECOv003_granules import L2GLSTE, L2TLSTE
-from ECOSTRESS.exit_codes import LAND_FILTER, SUCCESS_EXIT_CODE, RUNCONFIG_FILENAME_NOT_SUPPLIED, MissingRunConfigValue, \
+from ECOV003_exit_codes import LAND_FILTER, SUCCESS_EXIT_CODE, RUNCONFIG_FILENAME_NOT_SUPPLIED, MissingRunConfigValue, \
     ECOSTRESSExitCodeException, UnableToParseRunConfig
-from ECOSTRESS.runconfig import ECOSTRESSRunConfig, read_runconfig
+from .runconfig import ECOSTRESSRunConfig, read_runconfig
 from L2T_STARS import DEFAULT_STARS_SOURCES_DIRECTORY, L2T_STARS, generate_L2T_STARS_runconfig, \
     DEFAULT_STARS_INDICES_DIRECTORY, DEFAULT_STARS_MODEL_DIRECTORY
 from sentinel_tiles import SentinelTileGrid
@@ -204,35 +204,35 @@ class ECOv003DLConfig(ECOSTRESSRunConfig):
             logger.info(f"loading ECOv003_DL run-config: {cl.file(filename)}")
             runconfig = read_runconfig(filename)
 
-            if "StaticAncillaryFileGroup" not in runconfig:
-                raise MissingRunConfigValue(f"missing StaticAncillaryFileGroup in ECOv003_DL run-config: {filename}")
+            if "StaticAuxiliaryFileGroup" not in runconfig:
+                raise MissingRunConfigValue(f"missing StaticAuxiliaryFileGroup in ECOv003_DL run-config: {filename}")
 
-            if "ECOv003_DL_WORKING" not in runconfig["StaticAncillaryFileGroup"]:
+            if "ECOv003_DL_WORKING" not in runconfig["StaticAuxiliaryFileGroup"]:
                 raise MissingRunConfigValue(
-                    f"missing StaticAncillaryFileGroup/ECOv003_DL_WORKING in ECOv003_DL run-config: {filename}")
+                    f"missing StaticAuxiliaryFileGroup/ECOv003_DL_WORKING in ECOv003_DL run-config: {filename}")
 
-            working_directory = abspath(runconfig["StaticAncillaryFileGroup"]["ECOv003_DL_WORKING"])
+            working_directory = abspath(runconfig["StaticAuxiliaryFileGroup"]["ECOv003_DL_WORKING"])
             logger.info(f"working directory: {cl.dir(working_directory)}")
 
-            if "L2T_STARS_SOURCES" not in runconfig["StaticAncillaryFileGroup"]:
+            if "L2T_STARS_SOURCES" not in runconfig["StaticAuxiliaryFileGroup"]:
                 raise MissingRunConfigValue(
-                    f"missing StaticAncillaryFileGroup/L2T_STARS_SOURCES in ECOv003_DL run-config: {filename}")
+                    f"missing StaticAuxiliaryFileGroup/L2T_STARS_SOURCES in ECOv003_DL run-config: {filename}")
 
-            L2T_STARS_sources_directory = abspath(runconfig["StaticAncillaryFileGroup"]["L2T_STARS_SOURCES"])
+            L2T_STARS_sources_directory = abspath(runconfig["StaticAuxiliaryFileGroup"]["L2T_STARS_SOURCES"])
             logger.info(f"L2T STARS sources directory: {cl.dir(L2T_STARS_sources_directory)}")
 
-            if "L2T_STARS_INDICES" not in runconfig["StaticAncillaryFileGroup"]:
+            if "L2T_STARS_INDICES" not in runconfig["StaticAuxiliaryFileGroup"]:
                 raise MissingRunConfigValue(
-                    f"missing StaticAncillaryFileGroup/L2T_STARS_INDICES in ECOv003_DL run-config: {filename}")
+                    f"missing StaticAuxiliaryFileGroup/L2T_STARS_INDICES in ECOv003_DL run-config: {filename}")
 
-            L2T_STARS_indices_directory = abspath(runconfig["StaticAncillaryFileGroup"]["L2T_STARS_INDICES"])
+            L2T_STARS_indices_directory = abspath(runconfig["StaticAuxiliaryFileGroup"]["L2T_STARS_INDICES"])
             logger.info(f"L2T STARS indices directory: {cl.dir(L2T_STARS_indices_directory)}")
 
-            if "L2T_STARS_MODEL" not in runconfig["StaticAncillaryFileGroup"]:
+            if "L2T_STARS_MODEL" not in runconfig["StaticAuxiliaryFileGroup"]:
                 raise MissingRunConfigValue(
-                    f"missing StaticAncillaryFileGroup/L2T_STARS_MODEL in ECOv003_DL run-config: {filename}")
+                    f"missing StaticAuxiliaryFileGroup/L2T_STARS_MODEL in ECOv003_DL run-config: {filename}")
 
-            L2T_STARS_model_directory = abspath(runconfig["StaticAncillaryFileGroup"]["L2T_STARS_MODEL"])
+            L2T_STARS_model_directory = abspath(runconfig["StaticAuxiliaryFileGroup"]["L2T_STARS_MODEL"])
             logger.info(f"L2T STARS model directory: {cl.dir(L2T_STARS_model_directory)}")
 
             if "ProductPathGroup" not in runconfig:

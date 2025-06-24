@@ -247,7 +247,7 @@ class VNP43NRTGranule:
         return True
 
 
-class AncillaryDownloadFailed(ConnectionError):
+class AuxiliaryDownloadFailed(ConnectionError):
     pass
 
 
@@ -587,7 +587,7 @@ class VNP43NRT(VIIRSDownloaderAlbedo, VIIRSDownloaderNDVI):
         try:
             return self.GEOS5FP.AOT(time_UTC=time_UTC, geometry=geometry, resampling=resampling)
         except FailedGEOS5FPDownload as e:
-            raise AncillaryDownloadFailed("unable to retrieve AOT from GEOS5-FP for VNP43NRT")
+            raise AuxiliaryDownloadFailed("unable to retrieve AOT from GEOS5-FP for VNP43NRT")
 
     def VNP43NRT(
             self,
