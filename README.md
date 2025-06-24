@@ -195,6 +195,19 @@ Import this package with the name `ECOv003_L2T_STARS` with underscores:
 import ECOv003_L2T_STARS
 ```
 
+### Command Line Usage
+
+#### Command-Line Entry-Point for the `ECOv003-L2T-STARS` Product Generating Executable
+
+```bash
+ECOv003-L2T-STARS <runconfig> [--date YYYY-MM-DD] [--spinup-days DAYS] [--target-resolution METERS] [--ndvi-resolution METERS] [--albedo-resolution METERS] [--use-vnp43nrt | --no-vnp43nrt] [--calibrate-fine] [--sources-only] [--no-remove-input-staging] [--no-remove-prior] [--no-remove-posterior] [--threads COUNT] [--num-workers COUNT] [--version]
+```
+
+#### Command-Line Entry-Point for the `ECOv003-DL` Product Generating Executable
+
+```
+ECOv003_DL <runconfig_filename> [--tiles TILE_ID [TILE_ID ...]] [--version]
+```
 
 ## References
 
