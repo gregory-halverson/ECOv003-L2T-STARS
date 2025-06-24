@@ -1,6 +1,8 @@
 from os.path import exists
 import logging
 
+import colored_logging as cl
+
 from ECOv003_granules import L2TSTARS
 
 from .prior import Prior
