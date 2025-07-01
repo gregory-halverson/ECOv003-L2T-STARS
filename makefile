@@ -39,7 +39,7 @@ reinstall:
 	make install
 
 environment:
-	mamba create -y -n $(ENVIRONMENT_NAME) -c conda-forge python=3.10
+	mamba create -y -n $(ENVIRONMENT_NAME) -c conda-forge python=3.11
 
 remove-environment:
 	mamba env remove -y -n $(ENVIRONMENT_NAME)
