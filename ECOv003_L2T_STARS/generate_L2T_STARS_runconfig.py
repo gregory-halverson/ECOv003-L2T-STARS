@@ -246,4 +246,4 @@ def generate_L2T_STARS_runconfig(
         f"Finished generating L2T_STARS run-config for orbit {cl.val(orbit)} scene {cl.val(scene)} ({timer.tocvalue():.2f} seconds)"
     )
 
-    return
+    return runconfig_filename
