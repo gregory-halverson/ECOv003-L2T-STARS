@@ -22,7 +22,7 @@
         <scalar name="L2T_LSTE">L2T_LSTE_filename</scalar>
         <scalar name="L2T_STARS_PRIOR">prior_L2T_STARS_filename</scalar>
     </group>
-    <group name="StaticAuxiliaryFileGroup">
+    <group name="StaticAncillaryFileGroup">
         <scalar name="L2T_STARS_MODEL">model_directory</scalar>
         <scalar name="L2T_STARS_INDICES">indices_directory</scalar>
         <scalar name="L2T_STARS_SOURCES">sources_directory</scalar>
