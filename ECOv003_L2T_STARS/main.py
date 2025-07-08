@@ -2,7 +2,7 @@ import sys
 import argparse
 import logging
 
-from .version import __version__
+from ECOv003_L2T_STARS.version import __version__
 from .constants import *
 from .L2T_STARS import L2T_STARS
 
