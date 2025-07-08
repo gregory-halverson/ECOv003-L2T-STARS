@@ -27,7 +27,6 @@ dependencies = [
     "modland",
     "numpy",
     "pandas",
-    "pycksum",
     "pytictoc",
     "rasters",
     "scikit-image",
