@@ -12,7 +12,6 @@ dependencies = [
     "modland",
     "numpy",
     "pandas",
-    "pycksum",
     "rasters",
     "skimage",
     "scipy",
