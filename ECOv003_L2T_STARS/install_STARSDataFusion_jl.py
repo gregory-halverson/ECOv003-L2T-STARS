@@ -38,6 +38,6 @@ def install_STARSDataFusion_jl(
             f"STARSDataFusion.jl installed successfully in environment '{environment_name}'!"
         )
     else:
-        logger.error("Error installing STARS.jl:")
+        logger.error("Error installing STARSDataFusion.jl:")
         logger.error(result.stderr)
     return result
