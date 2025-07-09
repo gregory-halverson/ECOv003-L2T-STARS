@@ -259,7 +259,7 @@ def L2T_STARS(
             HLS_connection = HLS2CMR(
                 working_directory=working_directory,
                 download_directory=HLS_download_directory,
-                products_directory=HLS_products_directory,
+                # products_directory=HLS_products_directory,
                 target_resolution=target_resolution,
             )
         except CMRServerUnreachable as e:

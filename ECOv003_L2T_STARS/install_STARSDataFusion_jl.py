@@ -3,11 +3,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def install_STARS_jl(
-    github_URL: str = "https://github.com/STARS-Data-Fusion/STARS.jl",
+def install_STARSDataFusion_jl(
+    github_URL: str = "https://github.com/STARS-Data-Fusion/STARSDataFusion.jl",
     environment_name: str = "@ECOv003-L2T-STARS") -> subprocess.CompletedProcess:
     """
-    Installs the STARS.jl Julia package from GitHub into a specified Julia environment.
+    Installs the STARSDataFusion.jl Julia package from GitHub into a specified Julia environment.
 
     This function executes a Julia command to activate a given environment and
     then develops (installs in editable mode) the STARS.jl package from its
@@ -35,7 +35,7 @@ def install_STARS_jl(
 
     if result.returncode == 0:
         logger.info(
-            f"STARS.jl installed successfully in environment '{environment_name}'!"
+            f"STARSDataFusion.jl installed successfully in environment '{environment_name}'!"
         )
     else:
         logger.error("Error installing STARS.jl:")

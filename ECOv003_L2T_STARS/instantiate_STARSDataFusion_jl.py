@@ -3,11 +3,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def instantiate_STARS_jl(package_location: str) -> subprocess.CompletedProcess:
+def instantiate_STARSDataFusion_jl(package_location: str) -> subprocess.CompletedProcess:
     """
     Activates a Julia project at a given location and instantiates its dependencies.
 
-    This is necessary to ensure all required Julia packages for STARS.jl are
+    This is necessary to ensure all required Julia packages for STARSDataFusion.jl are
     downloaded and ready for use within the specified project environment.
 
     Args:
@@ -30,7 +30,7 @@ def instantiate_STARS_jl(package_location: str) -> subprocess.CompletedProcess:
 
     if result.returncode == 0:
         logger.info(
-            f"STARS.jl instantiated successfully in directory '{package_location}'!"
+            f"STARSDataFusion.jl instantiated successfully in directory '{package_location}'!"
         )
     else:
         logger.error("Error instantiating STARS.jl:")

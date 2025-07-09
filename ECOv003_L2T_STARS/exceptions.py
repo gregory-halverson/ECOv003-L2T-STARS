@@ -1,0 +1,2 @@
+class CMRServerUnreachable(Exception):
+    pass

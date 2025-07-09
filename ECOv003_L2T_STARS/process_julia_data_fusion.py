@@ -4,7 +4,7 @@ from datetime import date
 from os.path import abspath, dirname, join, exists
 import logging
 
-from .instantiate_STARS_jl import instantiate_STARS_jl
+from .instantiate_STARSDataFusion_jl import instantiate_STARSDataFusion_jl
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ def process_julia_data_fusion(
     STARS_source_directory = abspath(dirname(__file__))
 
     # Instantiate Julia dependencies
-    instantiate_STARS_jl(STARS_source_directory)
+    instantiate_STARSDataFusion_jl(STARS_source_directory)
 
     # Base Julia command with required arguments
     command = (
