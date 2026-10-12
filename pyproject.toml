@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ECOv003-L2T-STARS"
-version = "1.11.0"
+version = "1.12.0"
 description = "ECOSTRESS Collection 3 JPL STARS Data Fusion Product Generating Executable (PGE)"
 readme = "README.md"
 authors = [
@@ -15,12 +15,12 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "colored-logging",
-    "ECOv002-CMR>=1.0.4",
-    "ECOv002-granules",
-    "ECOv003-granules",
-    "ECOv003-exit-codes>=1.1.0",
-    "GEOS5FP",
+    "colored-logging~=1.1.0",
+    "ECOv002-CMR~=1.4.0",
+    "ECOv002-granules~=1.2.1",
+    "ECOv003-granules~=1.13.2",
+    "ECOv003-exit-codes~=1.1.0",
+    "GEOS5FP~=2.21.0",
     "h5py",
     "harmonized-landsat-sentinel>=2.0.0",
     "matplotlib",
@@ -37,7 +37,7 @@ dependencies = [
     "xmltodict"
 ]
 
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 [project.optional-dependencies]
 dev = [

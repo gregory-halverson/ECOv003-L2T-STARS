@@ -187,10 +187,13 @@ def L2T_STARS(
             L2T_LSTE_granule = ECOv002L2TLSTE(L2T_LSTE_filename)
         else:
             raise ValueError(f"Unsupported collection in filename: {L2T_LSTE_filename}")
-        
+       
         geometry = L2T_LSTE_granule.geometry
         metadata = L2T_LSTE_granule.metadata_dict
         metadata["StandardMetadata"]["PGEName"] = "L2T_STARS"
+
+        input_pointer = basename(L2T_LSTE_filename)
+        metadata["StandardMetadata"]["InputPointer"] = input_pointer
 
         # Update product names in metadata
         short_name = L2T_STARS_SHORT_NAME
