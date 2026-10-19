@@ -89,7 +89,7 @@ def process_julia_data_fusion(
 
     # Base Julia command with required arguments
     command = [
-        "julia", "--threads", f"{threads}", julia_script_filename,
+        "julia", f"--project={STARS_source_directory}", "--threads", f"{threads}", julia_script_filename,
         f"{num_workers}",
         tile,
         f"{coarse_cell_size}", f"{fine_cell_size}",

@@ -1,7 +1,7 @@
 using Glob
 using Dates
 using Rasters
-using DimensionalData.Dimensions.LookupArrays
+using DimensionalData.Lookups
 import ArchGDAL
 using VNP43NRT
 using Logging

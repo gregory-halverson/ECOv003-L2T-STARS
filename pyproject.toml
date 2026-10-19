@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ECOv003-L2T-STARS"
-version = "1.12.0"
+version = "1.12.1"
 description = "ECOSTRESS Collection 3 JPL STARS Data Fusion Product Generating Executable (PGE)"
 readme = "README.md"
 authors = [
@@ -62,3 +62,4 @@ exclude = []
 [project.scripts]
 ECOv003-L2T-STARS = "ECOv003_L2T_STARS.main:main"
 ECOv003-DL = "ECOv003_L2T_STARS.ECOv003_DL:main"
+ECOv003-L2T-STARS-install-julia = "ECOv003_L2T_STARS.julia_environment:main"
