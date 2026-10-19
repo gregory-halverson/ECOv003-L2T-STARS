@@ -62,3 +62,4 @@ exclude = []
 [project.scripts]
 ECOv003-L2T-STARS = "ECOv003_L2T_STARS.main:main"
 ECOv003-DL = "ECOv003_L2T_STARS.ECOv003_DL:main"
+ECOv003-L2T-STARS-install-julia = "ECOv003_L2T_STARS.julia_environment:main"

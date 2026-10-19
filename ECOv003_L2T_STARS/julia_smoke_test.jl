@@ -1,7 +1,8 @@
 # Smoke test for the Julia environment: evaluates every top-level `using`/`import`
 # statement from the package's Julia scripts, so missing packages and renamed or
 # moved submodules (e.g. DimensionalData.Lookups) fail at build time, not run time.
-# Usage: julia julia_smoke_test.jl
+# Usage: julia --project=<dir> julia_smoke_test.jl [script.jl ...]
+# (see julia_environment.py)
 
 const ROOT = @__DIR__
 
@@ -22,7 +23,8 @@ function import_statements(path)
 end
 
 failures = String[]
-for script in find_scripts(ROOT)
+# Run in the project the scripts use: julia --project=<dir> julia_smoke_test.jl [script.jl ...]
+for script in (isempty(ARGS) ? find_scripts(ROOT) : ARGS)
     for stmt in import_statements(script)
         try
             Core.eval(Main, stmt)

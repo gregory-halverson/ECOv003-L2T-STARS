@@ -111,7 +111,7 @@ def process_julia_BRDF(
         initialize_julia: bool,
         threads: Union[int, str] = "auto"):
     parent_directory = abspath(join(dirname(__file__), ".."))
-    julia_source_directory = join(parent_directory, "VNP43NRT_jl")
+    julia_source_directory = parent_directory
     julia_script_filename = join(abspath(dirname(__file__)), "process_VNP43NRT.jl")
 
     if initialize_julia:
@@ -129,7 +129,7 @@ def process_julia_BRDF(
     julia_env.pop("GDAL_DRIVER_PATH", None)
 
     command = [
-        "julia", julia_script_filename,
+        "julia", f"--project={julia_source_directory}", julia_script_filename,
         band,
         f"{h}", f"{v}",
         f"{tile_width_cells}",

@@ -24,7 +24,7 @@ test:
 
 test-julia:
 	@echo "Testing Julia environment..."
-	julia ECOv003_L2T_STARS/julia_smoke_test.jl
+	julia --project=ECOv003_L2T_STARS ECOv003_L2T_STARS/julia_smoke_test.jl ECOv003_L2T_STARS/process_ECOSTRESS_data_fusion_distributed_bias.jl ECOv003_L2T_STARS/VNP43NRT/process_VNP43NRT.jl
 
 # --- Package Management ---
 
@@ -64,8 +64,8 @@ remove-environment:
 	mamba env remove -y -n $(ENVIRONMENT_NAME)
 
 install-julia:
-	@echo "Installing Julia packages..."
-	julia -e 'using Pkg; Pkg.add.(["Glob", "DimensionalData", "HTTP", "JSON", "ArchGDAL", "Rasters", "STARSDataFusion"]); Pkg.develop(path="ECOv003_L2T_STARS/VNP43NRT_jl")'
+	@echo "Installing pinned Julia packages from Manifest.toml..."
+	julia --project=ECOv003_L2T_STARS -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 
 # --- Docker & Colima ---
 

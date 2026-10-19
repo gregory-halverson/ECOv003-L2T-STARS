@@ -187,6 +187,16 @@ You can also install development versions of this package directly from a clone 
 pip install .
 ```
 
+### Julia packages
+
+pip cannot install Julia packages. After `pip install`, run this once to install the exact Julia package versions pinned in the package's `Manifest.toml` and check that every Julia import loads:
+
+```
+ECOv003-L2T-STARS-install-julia
+```
+
+This requires Julia 1.11 (the version the manifests were resolved with). The Dockerfile runs this step during the image build, and all Julia calls in this package run with `--project` pointing at that single pinned environment (data fusion and VNP43NRT share it).
+
 ## Usage
 
 Import this package with the name `ECOv003_L2T_STARS` with underscores:

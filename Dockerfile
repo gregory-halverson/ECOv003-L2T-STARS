@@ -8,7 +8,7 @@ FROM base as environment
 RUN apt-get update && apt-get install -y --no-install-recommends tzdata wget fish ca-certificates
 
 # Install Julia
-ENV JULIA_VERSION=1.10.4
+ENV JULIA_VERSION=1.11.6
 RUN wget -q https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-$JULIA_VERSION-linux-x86_64.tar.gz \
     && tar -xzf julia-$JULIA_VERSION-linux-x86_64.tar.gz -C /opt \
     && ln -s /opt/julia-$JULIA_VERSION/bin/julia /usr/local/bin/julia \
@@ -32,6 +32,6 @@ WORKDIR /app
 # FROM dependencies as build
 FROM installation as build
 RUN make install
-# Fail the image build if any Julia package or import is broken
+# Julia must match the version in the Manifest.toml files; fail the build if any Julia package or import is broken
 RUN make test-julia
 RUN rm -rvf build; rm -rvf dist; rm -rvf *.egg-
