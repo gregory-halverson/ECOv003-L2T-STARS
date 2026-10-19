@@ -32,4 +32,6 @@ WORKDIR /app
 # FROM dependencies as build
 FROM installation as build
 RUN make install
+# Fail the image build if any Julia package or import is broken
+RUN make test-julia
 RUN rm -rvf build; rm -rvf dist; rm -rvf *.egg-

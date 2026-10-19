@@ -3,7 +3,7 @@ PACKAGE_NAME = ECOv003-L2T-STARS
 ENVIRONMENT_NAME = $(PACKAGE_NAME)
 DOCKER_IMAGE_NAME = $(shell echo $(PACKAGE_NAME) | tr '[:upper:]' '[:lower:]')
 
-.PHONY: clean test build twine-upload dist install-package install uninstall reinstall environment remove-environment install-julia colima-start docker-build docker-build-environment docker-build-installation docker-interactive docker-remove
+.PHONY: clean test test-julia build twine-upload dist install-package install uninstall reinstall environment remove-environment install-julia colima-start docker-build docker-build-environment docker-build-installation docker-interactive docker-remove
 
 # --- Cleaning and Maintenance ---
 
@@ -21,6 +21,10 @@ clean:
 test:
 	@echo "Running tests..."
 	PYTHONPATH=. pytest
+
+test-julia:
+	@echo "Testing Julia environment..."
+	julia ECOv003_L2T_STARS/julia_smoke_test.jl
 
 # --- Package Management ---
 

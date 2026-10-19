@@ -4,7 +4,7 @@ using Dates
 using LinearAlgebra
 using Statistics
 using Rasters
-using DimensionalData.Dimensions.LookupArrays
+using DimensionalData.Lookups
 using ProgressMeter
 
 SINUSOIDAL_CRS = WellKnownText("PROJCS[\"unknown\",GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"unknown\",6371007.181,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Sinusoidal\"],PARAMETER[\"longitude_of_center\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]")
